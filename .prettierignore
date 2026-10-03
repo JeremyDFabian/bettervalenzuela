@@ -1,0 +1,7 @@
+dist
+.astro
+.test-dist
+.lighthouseci
+pnpm-lock.yaml
+docs/superpowers
+.claude
