@@ -1,0 +1,72 @@
+[
+  {
+    "id": "certificates",
+    "name": "Certificates",
+    "description": "Birth, marriage, and death certificates and other civil registry documents.",
+    "icon": "certificates",
+    "order": 1
+  },
+  {
+    "id": "business",
+    "name": "Business",
+    "description": "Business permits, renewals, and related clearances.",
+    "icon": "business",
+    "order": 2
+  },
+  {
+    "id": "tax",
+    "name": "Tax payments",
+    "description": "Real property tax and business tax.",
+    "icon": "tax",
+    "order": 3
+  },
+  {
+    "id": "social",
+    "name": "Social services",
+    "description": "Assistance for senior citizens, persons with disability, and families.",
+    "icon": "social",
+    "order": 4
+  },
+  {
+    "id": "health",
+    "name": "Health",
+    "description": "Health centers, medical assistance, and health certificates.",
+    "icon": "health",
+    "order": 5
+  },
+  {
+    "id": "agriculture",
+    "name": "Agriculture",
+    "description": "Support for farmers and fisherfolk.",
+    "icon": "agriculture",
+    "order": 6
+  },
+  {
+    "id": "infrastructure",
+    "name": "Infrastructure",
+    "description": "Building, occupancy, and excavation permits.",
+    "icon": "infrastructure",
+    "order": 7
+  },
+  {
+    "id": "education",
+    "name": "Education",
+    "description": "Scholarships and city schools.",
+    "icon": "education",
+    "order": 8
+  },
+  {
+    "id": "safety",
+    "name": "Public safety",
+    "description": "Police, fire, and traffic clearances and reports.",
+    "icon": "safety",
+    "order": 9
+  },
+  {
+    "id": "environment",
+    "name": "Environment",
+    "description": "Waste collection and environmental permits.",
+    "icon": "environment",
+    "order": 10
+  }
+]

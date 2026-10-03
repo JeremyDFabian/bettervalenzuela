@@ -1,0 +1,11 @@
+# SAMPLE for development. Plan 3 replaces this with verified data.
+name: Business Permits and Licensing Office (sample)
+location: Valenzuela City Hall (sample)
+phones: ['(02) 8352-1000']
+hours: Monday to Friday, 8:00 AM to 5:00 PM (sample)
+sources:
+  - title: City of Valenzuela official website
+    url: https://www.valenzuela.gov.ph/
+    accessed: 2026-10-02
+lastVerified: 2026-10-02
+status: needs-review

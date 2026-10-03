@@ -1,0 +1,25 @@
+# SAMPLE for development. Plan 3 replaces this with verified data from the Citizen's Charter.
+title: New business permit (sample)
+summary: Sample entry showing how a service page looks. Not real requirements.
+whoCanApply: Sample text for who can apply.
+category: business
+office: sample-business-permits-office
+requirements:
+  - Sample requirement one
+  - Sample requirement two
+steps:
+  - Sample step one
+  - Sample step two
+fees:
+  - item: Sample filing fee
+    amount: 500
+  - item: Sample inspection
+    amount: 0
+processingTime: Sample processing time
+popular: true
+sources:
+  - title: City of Valenzuela official website
+    url: https://www.valenzuela.gov.ph/
+    accessed: 2026-10-02
+lastVerified: 2026-10-02
+status: needs-review

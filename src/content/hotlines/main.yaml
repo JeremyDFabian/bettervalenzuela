@@ -1,0 +1,17 @@
+# SAMPLE for development. Plan 3 replaces the entries with verified numbers.
+entries:
+  - name: National emergency hotline
+    category: emergency
+    numbers: ['911']
+  - name: Fire station (sample)
+    category: fire
+    numbers: ['(02) 8292-3519']
+  - name: City Hall trunkline (sample)
+    category: office
+    numbers: ['(02) 8352-1000']
+sources:
+  - title: City of Valenzuela official website
+    url: https://www.valenzuela.gov.ph/
+    accessed: 2026-10-02
+lastVerified: 2026-10-02
+status: needs-review
