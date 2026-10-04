@@ -152,6 +152,13 @@ describe('hotlinesSchema', () => {
     expect(hotlinesSchema.safeParse({ entries: [entry], ...verified }).success).toBe(false);
   });
 
+  test('keeps the optional one-line note shown on hotline cards', () => {
+    const entry = { name: 'Police', category: 'police', numbers: ['117'], note: '24 hours' };
+    expect(hotlinesSchema.parse({ entries: [entry], ...verified }).entries[0]?.note).toBe(
+      '24 hours',
+    );
+  });
+
   test('rejects unknown categories', () => {
     const entry = { name: 'X', category: 'pizza', numbers: ['911'] };
     expect(hotlinesSchema.safeParse({ entries: [entry], ...verified }).success).toBe(false);

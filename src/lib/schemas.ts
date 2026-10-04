@@ -97,6 +97,8 @@ export const hotlinesSchema = z.object({
         name: text,
         category: z.enum(hotlineCategories),
         numbers: z.array(text).min(1),
+        /** One line under the name, such as "Main station · 24 hours". */
+        note: text.optional(),
       }),
     )
     .min(1),

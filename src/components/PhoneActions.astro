@@ -13,29 +13,35 @@ interface Props {
   /** Who the numbers belong to, for button labels. */
   name: string;
   id: string;
+  /** Emergency numbers such as 911 use the solid red button. */
+  tone?: 'danger' | undefined;
 }
 
-const { numbers, name, id } = Astro.props;
+const { numbers, name, id, tone } = Astro.props;
 const entries = numbers.map((number) => ({ number, href: toTelHref(number) }));
 const primary = entries.find((entry) => entry.href !== null);
 const menuId = `${id}-menu`;
+// An emergency number alone gets one full-width "Call 911" button (approved, lab #c14).
+const solo = tone === 'danger' && entries.length === 1 && primary !== undefined;
 ---
 
 {entries.length > 0 && (
-  <div class="actions" data-phone-actions data-copied-text={t('phone.copied')}>
+  <div class:list={['actions', { solo }]} data-phone-actions data-copied-text={t('phone.copied')}>
     {primary ? (
       <a
-        class="call"
+        class:list={['call', tone]}
         href={primary.href}
         aria-label={t('phone.callLabel', { name, number: primary.number })}
       >
         <Icon name="phone" size={15} />
-        <span class="num">{primary.number}</span>
+        <span class="num">
+          {solo ? t('phone.callNumber', { number: primary.number }) : primary.number}
+        </span>
       </a>
     ) : (
       <span class="call plain">{entries[0]!.number}</span>
     )}
-    {entries.length === 1 ? (
+    {solo ? null : entries.length === 1 ? (
       <button
         type="button"
         class="icon-btn"
@@ -109,7 +115,11 @@ const menuId = `${id}-menu`;
         }
         button.dataset.copied = '';
         if (status) status.textContent = `${root.dataset.copiedText ?? ''} ${number}`;
-        setTimeout(() => delete button.dataset.copied, COPIED_MS);
+        setTimeout(() => {
+          delete button.dataset.copied;
+          button.dataset.restored = '';
+          setTimeout(() => delete button.dataset.restored, 300);
+        }, COPIED_MS);
       });
     }
 
@@ -133,6 +143,12 @@ const menuId = `${id}-menu`;
     grid-template-columns: minmax(0, 1fr) var(--tap-min);
     gap: 6px;
   }
+  .actions.solo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .solo .call {
+    justify-content: center;
+  }
   .call {
     display: inline-flex;
     align-items: center;
@@ -153,9 +169,16 @@ const menuId = `${id}-menu`;
     background: var(--color-primary-hover);
     color: var(--color-on-primary);
   }
+  /* Press depth depends on width: wide buttons move less (approved motion). */
   .call:active {
-    transform: scale(0.97);
+    transform: scale(0.985);
     transition-duration: 0.08s;
+  }
+  .call.danger {
+    background: linear-gradient(#dc2626, #b91c1c);
+  }
+  .call.danger:hover {
+    background: linear-gradient(#e02d2d, #a91919);
   }
   .call.plain {
     background: var(--color-surface);
@@ -184,7 +207,7 @@ const menuId = `${id}-menu`;
     background: #dedee3;
   }
   .icon-btn:active {
-    transform: scale(0.94);
+    transform: scale(0.96);
     transition-duration: 0.08s;
   }
   .icon-btn :global(.done),
@@ -194,6 +217,17 @@ const menuId = `${id}-menu`;
   .icon-btn[data-copied] :global(.done) {
     display: inline-flex;
     color: var(--color-ok);
+    animation: swap-in 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .icon-btn[data-restored] :global(.idle) {
+    animation: swap-in 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  @keyframes swap-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+      filter: blur(4px);
+    }
   }
   .menu {
     position: fixed;
@@ -257,7 +291,7 @@ const menuId = `${id}-menu`;
     opacity: 1;
   }
   @media (min-width: 48rem) {
-    .actions {
+    .actions:not(.solo) {
       grid-template-columns: minmax(0, 1fr) 36px;
     }
     .call,
@@ -270,12 +304,18 @@ const menuId = `${id}-menu`;
     .icon-btn {
       width: 36px;
     }
+    .call:active {
+      transform: scale(0.97);
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .call,
     .icon-btn,
     .copied {
       transition: none;
+    }
+    .icon-btn :global(.icon) {
+      animation: none !important;
     }
   }
 </style>

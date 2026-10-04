@@ -6,6 +6,7 @@ export interface HotlineEntry {
   name: string;
   category: HotlineCategory;
   numbers: string[];
+  note?: string | undefined;
 }
 
 export interface TickerItem {

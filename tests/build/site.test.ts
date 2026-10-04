@@ -166,3 +166,25 @@ describe('service detail page', () => {
     );
   });
 });
+
+describe('hotlines', () => {
+  test('production always offers 911 even though the sample hotlines need review', () => {
+    const html = read(PROD, 'hotlines/index.html');
+    expect(html).toContain('href="tel:911"');
+    expect(html).toContain('City hotlines are still being verified.');
+    expect(html).not.toContain('(sample)');
+  });
+
+  test('drafts list hotlines by category with dialable links', () => {
+    const html = read(DRAFTS, 'hotlines/index.html');
+    expect(html).toContain('Fire');
+    expect(html).toContain('href="tel:+63282923519"');
+    expect(html).toContain('data-review-badge');
+  });
+
+  test('numbers that cannot be dialled are shown as text, never as tel: links', () => {
+    const html = read(DRAFTS, 'hotlines/index.html');
+    expect(html).toContain('(044) 791-0000');
+    expect(html).not.toContain('tel:044');
+  });
+});
