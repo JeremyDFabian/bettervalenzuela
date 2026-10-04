@@ -1,14 +1,27 @@
 ---
+import BaseLayout from '../layouts/BaseLayout.astro';
 import { site } from '../site.config';
+import { t } from '../i18n/t';
+// Temporary: Task 9 replaces this with the approved hero (big logo behind the text, search, services).
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>{site.portalName}</title>
-  </head>
-  <body>
-    <h1>{site.portalName}</h1>
-  </body>
-</html>
+<BaseLayout title={site.portalName}>
+  <div class="container home">
+    <h1>{t('home.title')}</h1>
+    <p>{t('home.lead')}</p>
+  </div>
+</BaseLayout>
+
+<style>
+  .home {
+    padding-block: var(--space-8);
+    text-align: center;
+  }
+  h1 {
+    font-size: var(--text-3xl);
+  }
+  p {
+    margin-top: var(--space-3);
+    color: var(--color-muted);
+  }
+</style>

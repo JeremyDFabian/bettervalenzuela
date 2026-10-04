@@ -1,0 +1,58 @@
+---
+import { t } from '../i18n/t';
+import type { Crumb } from '../lib/types';
+
+interface Props {
+  items: Crumb[];
+  tone?: 'default' | 'onColor' | undefined;
+}
+
+const { items, tone = 'default' } = Astro.props;
+---
+
+<nav class:list={['breadcrumb', tone]} aria-label={t('nav.breadcrumb')} data-pagefind-ignore>
+  <ol>
+    {items.map((item, index) => (
+      <li>
+        {item.href && index < items.length - 1 ? (
+          <a href={item.href}>{item.label}</a>
+        ) : (
+          <span aria-current="page">{item.label}</span>
+        )}
+      </li>
+    ))}
+  </ol>
+</nav>
+
+<style>
+  ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1) 6px;
+    padding: 0;
+    list-style: none;
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+  }
+  li + li::before {
+    content: '›';
+    margin-inline-end: 6px;
+    color: var(--color-border-strong);
+  }
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    color: var(--color-text-2);
+    text-decoration: none;
+  }
+  a:hover {
+    color: var(--color-link);
+  }
+  .onColor ol,
+  .onColor a,
+  .onColor li + li::before {
+    color: #fff;
+  }
+</style>

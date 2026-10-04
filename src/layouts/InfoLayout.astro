@@ -1,0 +1,88 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import { t } from '../i18n/t';
+import { formatDate } from '../lib/format';
+import { site } from '../site.config';
+
+/** About, Privacy, and Accessibility: bright blue band with title and lede, then content on white. */
+interface Props {
+  title: string;
+  description: string;
+  lede: string;
+  showUpdated?: boolean | undefined;
+}
+
+const { title, description, lede, showUpdated = true } = Astro.props;
+---
+
+<BaseLayout {title} {description}>
+  <div class="band">
+    <div class="narrow">
+      <Breadcrumb items={[{ label: t('nav.home'), href: '/' }, { label: title }]} tone="onColor" />
+      <h1>{title}</h1>
+      <p class="lede">{lede}</p>
+      {showUpdated && (
+        <p class="upd">
+          {t('info.updated', { date: formatDate(new Date(site.infoPagesUpdated)) })}
+        </p>
+      )}
+      <slot name="band" />
+    </div>
+  </div>
+  <div class="narrow body">
+    <slot />
+  </div>
+</BaseLayout>
+
+<style>
+  .band {
+    background: var(--color-primary);
+    color: #fff;
+    padding-block: 32px 36px;
+  }
+  h1 {
+    margin-top: var(--space-2);
+    font-size: var(--text-3xl);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #fff;
+  }
+  .lede {
+    margin-top: var(--space-2);
+    max-width: 52ch;
+    font-size: 1.0625rem;
+    line-height: 1.5;
+  }
+  .upd {
+    margin-top: 10px;
+    font-size: 0.8125rem;
+  }
+  .body {
+    padding-block: var(--space-6) var(--space-8);
+  }
+  .body :global(h2) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: var(--space-6) 0 var(--space-3);
+    font-size: 1.3125rem;
+    font-weight: 600;
+  }
+  .body :global(h2 .icon) {
+    color: var(--color-primary);
+  }
+  .body :global(p),
+  .body :global(li) {
+    font-size: 0.96875rem;
+    line-height: 1.6;
+  }
+  .body :global(p) {
+    margin-bottom: 10px;
+    max-width: 66ch;
+  }
+  .body :global(ul) {
+    margin-bottom: 10px;
+    padding-left: 20px;
+  }
+</style>
