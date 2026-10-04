@@ -46,9 +46,10 @@ const isCurrent = (href?: string) => (href ? current.startsWith(href) : false);
     <Wordmark />
     <nav class="menu" aria-label={t('nav.label')}>
       <ul class="top">
-        {menu.map((entry) => {
+        {menu.map((entry, index) => {
           const hasPanel = entry.panel === 'services' || (entry.groups?.length ?? 0) > 0;
           const label = t(entry.labelKey);
+          const panelId = `menu-panel-${index}`;
           return (
             <li class:list={['top-item', { 'has-panel': hasPanel }]}>
               {entry.href ? (
@@ -61,13 +62,19 @@ const isCurrent = (href?: string) => (href ? current.startsWith(href) : false);
                   {hasPanel && <Icon name="chevronDown" size={14} class="chev" />}
                 </a>
               ) : (
-                <button class="top-link" type="button" aria-haspopup="true">
+                <button
+                  class="top-link"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls={panelId}
+                  data-menu-toggle
+                >
                   {label}
                   <Icon name="chevronDown" size={14} class="chev" />
                 </button>
               )}
               {entry.panel === 'services' && (
-                <div class="panel wide">
+                <div class="panel wide" id={panelId}>
                   <div>
                     <p class="ph">{t('nav.group.byCategory')}</p>
                     {servicePanel.categories.map((c) => (
@@ -99,7 +106,7 @@ const isCurrent = (href?: string) => (href ? current.startsWith(href) : false);
                 </div>
               )}
               {entry.groups && (
-                <div class:list={['panel', { wide: entry.groups.length > 1 }]}>
+                <div class:list={['panel', { wide: entry.groups.length > 1 }]} id={panelId}>
                   {entry.groups.map((group) => (
                     <div>
                       <p class="ph">{t(group.headingKey)}</p>
@@ -195,6 +202,45 @@ const isCurrent = (href?: string) => (href ? current.startsWith(href) : false);
     window.addEventListener('scroll', update, { passive: true });
     update();
   }
+
+  // Menu panels open on hover and focus (CSS) and on click (this script). Escape closes the
+  // open panel and keeps it closed until the pointer or focus leaves (WCAG 1.4.13).
+  const items = [...document.querySelectorAll<HTMLElement>('.top-item.has-panel')];
+  const setOpen = (item: HTMLElement, open: boolean) => {
+    item.toggleAttribute('data-open', open);
+    item.querySelector('[data-menu-toggle]')?.setAttribute('aria-expanded', String(open));
+  };
+  for (const item of items) {
+    item.querySelector('[data-menu-toggle]')?.addEventListener('click', () => {
+      const open = !item.hasAttribute('data-open');
+      for (const other of items) setOpen(other, false);
+      item.removeAttribute('data-dismissed');
+      setOpen(item, open);
+    });
+    item.addEventListener('mouseleave', () => item.removeAttribute('data-dismissed'));
+    item.addEventListener('focusout', (event) => {
+      if (!item.contains(event.relatedTarget as Node | null)) {
+        item.removeAttribute('data-dismissed');
+        setOpen(item, false);
+      }
+    });
+  }
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    for (const item of items) {
+      if (item.matches(':hover, :focus-within, [data-open]')) {
+        const focusInside = item.contains(document.activeElement);
+        item.setAttribute('data-dismissed', '');
+        setOpen(item, false);
+        if (focusInside) item.querySelector<HTMLElement>('.top-link')?.focus();
+      }
+    }
+  });
+  document.addEventListener('click', (event) => {
+    for (const item of items) {
+      if (!item.contains(event.target as Node)) setOpen(item, false);
+    }
+  });
 </script>
 
 <style>
@@ -294,12 +340,14 @@ const isCurrent = (href?: string) => (href ? current.startsWith(href) : false);
     inset: -10px 0 auto;
     height: 10px;
   }
-  .top-item:hover .panel,
-  .top-item:focus-within .panel {
+  .top-item:not([data-dismissed]):hover .panel,
+  .top-item:not([data-dismissed]):focus-within .panel,
+  .top-item[data-open] .panel {
     display: block;
   }
-  .top-item:hover .panel.wide,
-  .top-item:focus-within .panel.wide {
+  .top-item:not([data-dismissed]):hover .panel.wide,
+  .top-item:not([data-dismissed]):focus-within .panel.wide,
+  .top-item[data-open] .panel.wide {
     display: grid;
   }
   .ph {

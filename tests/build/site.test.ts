@@ -252,3 +252,15 @@ describe('machine-readable files', () => {
     expect(form).toContain('id: page-url');
   });
 });
+
+describe('main menu accessibility', () => {
+  test('panel buttons report their state and do not claim to be menus', () => {
+    const html = read(PROD, 'about/index.html');
+    expect(html).not.toContain('aria-haspopup');
+    expect(html.match(/<button[^>]*class="top-link"[^>]*>/g)?.length).toBeGreaterThan(0);
+    for (const button of html.match(/<button[^>]*class="top-link"[^>]*>/g) ?? []) {
+      expect(button).toContain('aria-expanded="false"');
+      expect(button).toMatch(/aria-controls="[^"]+"/);
+    }
+  });
+});

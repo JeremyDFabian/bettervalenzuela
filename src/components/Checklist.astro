@@ -270,8 +270,9 @@ const { heading, items, storageKey } = Astro.props;
       stroke-dashoffset 0.2s ease-out 0.06s,
       opacity 0.01s 0.06s;
   }
+  /* Muted but still AA on the gray list (about 4.7:1); the strike line marks it done. */
   input:checked ~ .text {
-    color: #86868b;
+    color: var(--color-muted);
   }
   input:checked ~ .text::after {
     transform: scaleX(1);
