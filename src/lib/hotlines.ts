@@ -25,9 +25,13 @@ export function tickerItems(entries: readonly HotlineEntry[], limit = 6): Ticker
     if (!URGENT.has(entry.category) || number === undefined) continue;
     items.push({ name: entry.name, number, href: toTelHref(number) });
   }
-  const has911 = items.some((item) => item.href === 'tel:911');
-  const national: TickerItem = { name: t('hotlines.national911'), number: '911', href: 'tel:911' };
-  return (has911 ? items : [national, ...items]).slice(0, limit);
+  // 911 always comes first, so the strip's red emergency link is never another number.
+  const index = items.findIndex((item) => item.href === 'tel:911');
+  const national: TickerItem =
+    index === -1
+      ? { name: t('hotlines.national911'), number: '911', href: 'tel:911' }
+      : items.splice(index, 1)[0]!;
+  return [national, ...items].slice(0, limit);
 }
 
 export function groupByCategory(

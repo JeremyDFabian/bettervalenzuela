@@ -30,6 +30,28 @@ describe('tickerItems', () => {
     expect(items).toEqual([{ name: 'National emergency', number: '911', href: 'tel:911' }]);
   });
 
+  test('moves 911 to the front when the data lists it after other numbers', () => {
+    const items = tickerItems([
+      { name: 'Police', category: 'police', numbers: ['(02) 8000-0101'] },
+      { name: 'National emergency', category: 'emergency', numbers: ['911'] },
+    ]);
+    expect(items.map((i) => i.number)).toEqual(['911', '(02) 8000-0101']);
+  });
+
+  test('keeps 911 even when it falls beyond the limit in the data', () => {
+    const items = tickerItems(
+      [
+        { name: 'Police', category: 'police', numbers: ['(02) 8000-0101'] },
+        { name: 'Fire', category: 'fire', numbers: ['(02) 8292-3519'] },
+        { name: 'Medical', category: 'medical', numbers: ['(02) 8000-0301'] },
+        { name: 'National emergency', category: 'emergency', numbers: ['911'] },
+      ],
+      3,
+    );
+    expect(items[0]?.href).toBe('tel:911');
+    expect(items).toHaveLength(3);
+  });
+
   test('still offers 911 with no data at all', () => {
     expect(tickerItems([])).toEqual([{ name: 'Emergency', number: '911', href: 'tel:911' }]);
   });
