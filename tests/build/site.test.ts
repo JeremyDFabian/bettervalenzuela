@@ -155,6 +155,12 @@ describe('service detail page', () => {
     expect(html).toContain('Oct 2, 2026');
   });
 
+  test('office hours warn that holidays and suspensions may close the office', () => {
+    expect(read(DRAFTS, page)).toContain(
+      'Regular hours. Holidays and suspensions may close the office.',
+    );
+  });
+
   test('lists each requirement as a checkbox that works without JavaScript', () => {
     const html = read(DRAFTS, page);
     expect(html.match(/type="checkbox"/g)).toHaveLength(2);

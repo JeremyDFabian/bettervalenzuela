@@ -54,13 +54,17 @@ const labels = {
         </p>
       )}
       {schedule.length > 0 && (
-        <p
-          class="status"
-          hidden
-          data-office-status
-          data-schedule={JSON.stringify(schedule)}
-          data-labels={JSON.stringify(labels)}
-        />
+        <>
+          <p
+            class="status"
+            hidden
+            data-office-status
+            data-schedule={JSON.stringify(schedule)}
+            data-labels={JSON.stringify(labels)}
+          />
+          {/* The status cannot know about holidays or work suspensions (final review). */}
+          <p class="hours-note">{t('office.hoursNote')}</p>
+        </>
       )}
     </div>
   </div>
@@ -147,6 +151,11 @@ const labels = {
   .line {
     margin-top: 2px;
     font-size: 0.8125rem;
+    color: var(--color-muted);
+  }
+  .hours-note {
+    margin-top: 2px;
+    font-size: 0.75rem;
     color: var(--color-muted);
   }
   .status {

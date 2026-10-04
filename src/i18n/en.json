@@ -137,6 +137,7 @@
   "office.opensToday": "opens at {time}",
   "office.opensOn": "opens {day} at {time}",
   "office.directions": "Directions",
+  "office.hoursNote": "Regular hours. Holidays and suspensions may close the office.",
   "office.also": "Also: {numbers}",
   "office.day.mon": "Monday",
   "office.day.tue": "Tuesday",
