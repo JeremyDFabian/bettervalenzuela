@@ -1,0 +1,19 @@
+name: Isla
+district: 1
+phones:
+  - '8-277-0377'
+coordinates:
+  lat: 14.7085163
+  lng: 120.9489102
+status: needs-review
+lastVerified: 2026-10-04
+sources:
+  - title: 'Valenzuela City Government - Barangays (name and legislative district)'
+    url: https://valenzuela.gov.ph/barangays/
+    accessed: 2026-10-04
+  - title: 'Valenzuela City Government - Directory: 3S Centers and Barangays (phone numbers)'
+    url: https://valenzuela.gov.ph/3s-centers-barangays/
+    accessed: 2026-10-04
+  - title: 'OpenStreetMap way 331947377 (barangay hall location)'
+    url: https://www.openstreetmap.org/way/331947377
+    accessed: 2026-10-04

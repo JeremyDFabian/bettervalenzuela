@@ -1,0 +1,20 @@
+name: Bignay
+district: 1
+phones:
+  - '8-294-4640'
+  - '8-961-7732'
+coordinates:
+  lat: 14.7447057
+  lng: 121.0033258
+status: needs-review
+lastVerified: 2026-10-04
+sources:
+  - title: 'Valenzuela City Government - Barangays (name and legislative district)'
+    url: https://valenzuela.gov.ph/barangays/
+    accessed: 2026-10-04
+  - title: 'Valenzuela City Government - Directory: 3S Centers and Barangays (phone numbers)'
+    url: https://valenzuela.gov.ph/3s-centers-barangays/
+    accessed: 2026-10-04
+  - title: 'OpenStreetMap way 316482840 (barangay hall location)'
+    url: https://www.openstreetmap.org/way/316482840
+    accessed: 2026-10-04

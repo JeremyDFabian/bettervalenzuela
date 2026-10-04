@@ -1,0 +1,14 @@
+name: 'Exequiel D. Serrano'
+position: councilor
+district: 1
+termStart: 2025-06-30
+termEnd: 2028-06-30
+status: needs-review
+lastVerified: 2026-10-04
+sources:
+  - title: 'City Government of Valenzuela - City Officials'
+    url: https://www.valenzuela.gov.ph/city-officials
+    accessed: 2026-10-04
+  - title: 'COMELEC Certified List of Candidates, May 12 2025 - City of Valenzuela'
+    url: https://www.comelec.gov.ph/php-tpls-attachments/2025NLE/COC_2025NLE/CLC2025_NCR/VALENZUELA.pdf
+    accessed: 2026-10-04

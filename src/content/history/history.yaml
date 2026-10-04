@@ -1,0 +1,80 @@
+timeline:
+  - year: 1623
+    title: Polo is established as an independent town
+    description: On November 12, 1623, Spanish Governor-General Alonso Fajardo de Entenza ordered the separation of sitio Polo from Catangalan and its establishment as an independent town.
+    featured: true
+    sources:
+      - title: History - Valenzuela City Website
+        url: https://valenzuela.gov.ph/history/
+        accessed: 2026-10-04
+  - year: 1896
+    title: Armed revolution against Spain is declared
+    description: The city's history page records that Bonifacio declared armed revolution at Pugadlawin in Caloocan on August 29, 1896. It also records that Pio Valenzuela surrendered on September 1, 1896, after an amnesty offer.
+    sources:
+      - title: History - Valenzuela City Website
+        url: https://valenzuela.gov.ph/the_city/history
+        accessed: 2026-10-04
+  - year: 1944
+    title: Japanese forces massacre men of Polo
+    description: On December 10, 1944, Japanese forces massacred 100 males from Polo and neighboring Obando suspected of rebellion.
+    sources:
+      - title: History - Valenzuela City Website
+        url: https://valenzuela.gov.ph/history/
+        accessed: 2026-10-04
+  - year: 1960
+    title: Municipality of Valenzuela is created from Polo
+    description: Executive Order No. 401, signed July 21, 1960, created the Municipality of Valenzuela in Bulacan from ten barrios of Polo, with its seat at Caruhatan.
+    featured: true
+    sources:
+      - title: Executive Order No. 401, s. 1960 (Lawphil)
+        url: https://lawphil.net/executive/execord/eo1960/eo_401_1960.html
+        accessed: 2026-10-04
+      - title: History - Valenzuela City Website
+        url: https://valenzuela.gov.ph/history/
+        accessed: 2026-10-04
+  - year: 1963
+    title: Polo and Valenzuela are reunited as one municipality
+    description: Executive Order No. 46, signed September 11, 1963, consolidated the territories of Polo and Valenzuela into a single Municipality of Valenzuela, seated at Karuhatan.
+    sources:
+      - title: Executive Order No. 46, s. 1963 (Lawphil)
+        url: https://lawphil.net/executive/execord/eo1963/eo_46_1963.html
+        accessed: 2026-10-04
+  - year: 1975
+    title: Valenzuela joins Metropolitan Manila
+    description: Presidential Decree No. 824, signed November 7, 1975, created Metropolitan Manila and named the municipality of Valenzuela, Bulacan, among the areas under its Commission.
+    sources:
+      - title: Presidential Decree No. 824, s. 1975 (Lawphil)
+        url: https://lawphil.net/statutes/presdecs/pd1975/pd_824_1975.html
+        accessed: 2026-10-04
+      - title: History - Valenzuela City Website
+        url: https://valenzuela.gov.ph/history/
+        accessed: 2026-10-04
+  - year: 1998
+    title: Valenzuela becomes a highly urbanized city
+    description: Republic Act No. 8526, approved February 14, 1998, provided for the conversion of the Municipality of Valenzuela into a highly urbanized city, subject to ratification in a plebiscite. The city's history page calls it the 12th city in Metro Manila and the 83rd in the Philippines.
+    featured: true
+    sources:
+      - title: Republic Act No. 8526 (Lawphil)
+        url: https://lawphil.net/statutes/repacts/ra1998/ra_8526_1998.html
+        accessed: 2026-10-04
+      - title: History - Valenzuela City Website
+        url: https://valenzuela.gov.ph/history/
+        accessed: 2026-10-04
+sources:
+  - title: History - Valenzuela City Website
+    url: https://valenzuela.gov.ph/history/
+    accessed: 2026-10-04
+  - title: Executive Order No. 401, s. 1960 (Lawphil)
+    url: https://lawphil.net/executive/execord/eo1960/eo_401_1960.html
+    accessed: 2026-10-04
+  - title: Executive Order No. 46, s. 1963 (Lawphil)
+    url: https://lawphil.net/executive/execord/eo1963/eo_46_1963.html
+    accessed: 2026-10-04
+  - title: Presidential Decree No. 824, s. 1975 (Lawphil)
+    url: https://lawphil.net/statutes/presdecs/pd1975/pd_824_1975.html
+    accessed: 2026-10-04
+  - title: Republic Act No. 8526 (Lawphil)
+    url: https://lawphil.net/statutes/repacts/ra1998/ra_8526_1998.html
+    accessed: 2026-10-04
+lastVerified: 2026-10-04
+status: needs-review
