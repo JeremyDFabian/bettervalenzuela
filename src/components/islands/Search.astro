@@ -1,34 +1,49 @@
 ---
 import Icon from '../Icon.astro';
 import { t } from '../../i18n/t';
+
+interface Props {
+  /** "hero": the large home-page search with a Search button (approved hero, lab #c15). */
+  variant?: 'header' | 'hero' | undefined;
+}
+
+const { variant = 'header' } = Astro.props;
+const hero = variant === 'hero';
 ---
 
 <form
-  class="xs"
+  class:list={['xs', { hero }]}
   role="search"
   action="/search/"
   method="get"
   data-site-search
   data-placeholder-open={t('search.placeholder')}
-  data-placeholder-closed={t('search.quick')}
+  data-placeholder-closed={hero ? t('search.placeholder') : t('search.quick')}
   data-see-all={t('search.seeAll')}
   data-top={t('search.top')}
 >
-  <Icon name="search" size={16} class="xs-i" />
+  <Icon name="search" size={hero ? 20 : 16} class="xs-i" />
   <input
     type="search"
     name="q"
     aria-label={t('search.label')}
-    placeholder={t('search.quick')}
+    placeholder={hero ? t('search.placeholder') : t('search.quick')}
     autocomplete="off"
     enterkeyhint="search"
   />
-  <kbd class="xs-k" aria-hidden="true">
-    <span data-mod>Ctrl</span> K
-  </kbd>
+  {!hero && (
+    <kbd class="xs-k" aria-hidden="true">
+      <span data-mod>Ctrl</span> K
+    </kbd>
+  )}
   <button type="button" class="xs-x" hidden aria-label={t('search.clear')}>
     <Icon name="close" size={14} />
   </button>
+  {hero && (
+    <button type="submit" class="xs-go">
+      {t('search.button')}
+    </button>
+  )}
   <div class="xs-panel" hidden></div>
 </form>
 
@@ -40,7 +55,7 @@ import { t } from '../../i18n/t';
   document.querySelectorAll<HTMLFormElement>('[data-site-search]').forEach((form) => {
     const input = form.querySelector('input') as HTMLInputElement;
     const clear = form.querySelector('.xs-x') as HTMLButtonElement;
-    const badge = form.querySelector('.xs-k') as HTMLElement;
+    const badge = form.querySelector<HTMLElement>('.xs-k');
     const panel = form.querySelector('.xs-panel') as HTMLElement;
     const mod = form.querySelector('[data-mod]');
     if (mod && isMac) mod.textContent = '⌘';
@@ -54,7 +69,7 @@ import { t } from '../../i18n/t';
     };
     const syncEnd = () => {
       clear.hidden = input.value === '';
-      badge.hidden = input.value !== '';
+      if (badge) badge.hidden = input.value !== '';
     };
     const close = () => {
       panel.hidden = true;
@@ -264,10 +279,14 @@ import { t } from '../../i18n/t';
     font-weight: 600;
   }
   .xs-panel :global(li span) {
-    display: block;
+    display: -webkit-box;
+    overflow: hidden;
     font-size: 0.8125rem;
     color: var(--color-muted);
     line-height: 1.4;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
   }
   .xs-panel :global(mark) {
     background: #fff3b0;
@@ -279,6 +298,7 @@ import { t } from '../../i18n/t';
     margin-top: 2px;
     font-size: var(--text-xs);
     color: var(--color-muted);
+    text-transform: capitalize;
   }
   .xs-panel :global(.xs-all) {
     display: flex;
@@ -291,6 +311,58 @@ import { t } from '../../i18n/t';
     font-weight: 600;
     color: var(--color-link);
     text-decoration: none;
+  }
+  /* Hero variant: large field with a Search button; results drop down under it. */
+  .xs.hero {
+    width: 100%;
+    max-width: 600px;
+    height: 54px;
+    margin-inline: auto;
+    padding: 0 16px;
+    border-radius: 18px;
+    gap: 12px;
+  }
+  .xs.hero:focus-within,
+  .xs.hero:has(input:not(:placeholder-shown)) {
+    width: 100%;
+  }
+  .xs.hero input {
+    font-size: 1rem;
+  }
+  .xs-go {
+    display: none;
+  }
+  .xs.hero .xs-panel {
+    right: 0;
+    left: 0;
+    width: auto;
+    text-align: left;
+  }
+  @media (min-width: 48rem) {
+    .xs.hero {
+      height: 60px;
+      padding: 0 8px 0 20px;
+    }
+    .xs.hero input {
+      font-size: 1.125rem;
+    }
+    .xs-go {
+      display: inline-flex;
+      align-items: center;
+      height: 44px;
+      padding: 0 22px;
+      border: 0;
+      border-radius: var(--radius-lg);
+      background: var(--color-primary);
+      color: var(--color-on-primary);
+      font: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .xs-go:hover {
+      background: var(--color-primary-hover);
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .xs {

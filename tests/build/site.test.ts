@@ -188,3 +188,42 @@ describe('hotlines', () => {
     expect(html).not.toContain('tel:044');
   });
 });
+
+describe('home page', () => {
+  // The hero alone, so links from the header menu do not count.
+  const hero = (dir: string): string => {
+    const html = read(dir, 'index.html');
+    const start = html.indexOf('data-home-hero');
+    expect(start, 'home hero').toBeGreaterThan(-1);
+    return html.slice(start, html.indexOf('</section>', start));
+  };
+
+  test('offers 911 and exactly one search box, inside the hero', () => {
+    const html = read(PROD, 'index.html');
+    expect(html).toContain('href="tel:911"');
+    expect(html.match(/data-site-search/g)).toHaveLength(1);
+    expect(hero(PROD)).toContain('data-site-search');
+  });
+
+  test('without verified popular services, the hero links to services and hotlines', () => {
+    const html = hero(PROD);
+    expect(html).toContain('href="/services/"');
+    expect(html).toContain('href="/hotlines/"');
+    expect(html).not.toContain('sample-business-permit');
+  });
+
+  test('preview builds show popular services as cards in the hero', () => {
+    expect(hero(DRAFTS)).toContain('href="/services/business/sample-business-permit/"');
+  });
+});
+
+describe('search index', () => {
+  test('preview builds index needs-review pages so search can be tried with samples', () => {
+    const html = read(DRAFTS, 'services/business/sample-business-permit/index.html');
+    expect(html).toContain('data-pagefind-body');
+  });
+
+  test('the home page is not a search result', () => {
+    expect(read(PROD, 'index.html')).not.toContain('data-pagefind-body');
+  });
+});

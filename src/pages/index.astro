@@ -1,27 +1,11 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
 import { site } from '../site.config';
-import { t } from '../i18n/t';
-// Temporary: Task 9 replaces this with the approved hero (big logo behind the text, search, services).
+// Plan 2 adds blocks below the hero, in this order: statistics, rain outlook and map, history,
+// leadership, contact, quiz (approved layout, lab #c15 state E).
 ---
 
-<BaseLayout title={site.portalName}>
-  <div class="container home">
-    <h1>{t('home.title')}</h1>
-    <p>{t('home.lead')}</p>
-  </div>
+<BaseLayout title={site.portalName} showHeaderSearch={false} searchable={false}>
+  <Hero />
 </BaseLayout>
-
-<style>
-  .home {
-    padding-block: var(--space-8);
-    text-align: center;
-  }
-  h1 {
-    font-size: var(--text-3xl);
-  }
-  p {
-    margin-top: var(--space-3);
-    color: var(--color-muted);
-  }
-</style>

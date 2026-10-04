@@ -133,13 +133,15 @@ const isCurrent = (href?: string) => (href ? current.startsWith(href) : false);
     </nav>
     <div class="end">
       {showSearch && (
-        <div class="desk-search">
-          <Search />
-        </div>
+        <>
+          <div class="desk-search">
+            <Search />
+          </div>
+          <a class="icon-btn phone-only" href="/search/" aria-label={t('search.label')}>
+            <Icon name="search" size={22} />
+          </a>
+        </>
       )}
-      <a class="icon-btn phone-only" href="/search/" aria-label={t('search.label')}>
-        <Icon name="search" size={22} />
-      </a>
       <details class="sheet phone-only">
         <summary class="icon-btn" aria-label={t('nav.label')}>
           <svg

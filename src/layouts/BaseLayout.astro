@@ -15,6 +15,9 @@ interface Props {
   /** Pagefind filter value, e.g. "Services". Omit to leave the page unfiltered. */
   section?: string | undefined;
   showHeaderSearch?: boolean | undefined;
+  /** False keeps the page out of site search (the home page). Needs-review pages stay
+   * searchable: they exist only in preview builds, where search should find the samples. */
+  searchable?: boolean | undefined;
 }
 
 const {
@@ -24,6 +27,7 @@ const {
   noindex = false,
   section,
   showHeaderSearch = true,
+  searchable = true,
 } = Astro.props;
 const fullTitle = title === site.portalName ? title : `${title} | ${site.portalName}`;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).toString();
@@ -56,7 +60,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).toString()
     <Header showSearch={showHeaderSearch} />
     <main
       id="main"
-      data-pagefind-body={noindex ? undefined : ''}
+      data-pagefind-body={searchable ? '' : undefined}
       data-pagefind-filter={section ? `section:${section}` : undefined}
     >
       <slot />
