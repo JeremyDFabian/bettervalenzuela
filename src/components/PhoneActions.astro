@@ -31,7 +31,12 @@ const solo = tone === 'danger' && entries.length === 1 && primary !== undefined;
       <a
         class:list={['call', tone]}
         href={primary.href}
-        aria-label={t('phone.callLabel', { name, number: primary.number })}
+        aria-label={
+          // The accessible name must start with the visible text (WCAG 2.5.3, voice control).
+          solo
+            ? t('phone.callSoloLabel', { name, number: primary.number })
+            : t('phone.callLabel', { name, number: primary.number })
+        }
       >
         <Icon name="phone" size={15} />
         <span class="num">

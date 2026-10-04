@@ -150,6 +150,7 @@
   "phone.copy": "Copy",
   "phone.copied": "Copied",
   "phone.callLabel": "Call {name}, {number}",
+  "phone.callSoloLabel": "Call {number}, {name}",
   "phone.copyLabel": "Copy {number}",
   "phone.moreLabel": "More options for {name}",
   "hotlines.title": "Hotlines",
