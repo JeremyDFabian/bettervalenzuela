@@ -1,0 +1,270 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import Icon from '../components/Icon.astro';
+import OfficeCard from '../components/OfficeCard.astro';
+import OfficialCard from '../components/OfficialCard.astro';
+import SegmentedNav from '../components/SegmentedNav.astro';
+import SourceLine from '../components/SourceLine.astro';
+import { site } from '../site.config';
+import { t } from '../i18n/t';
+import { getPublished } from '../lib/content';
+import { buildIssueUrl } from '../lib/issues';
+import { groupOfficials } from '../lib/officials';
+import { mergeSources } from '../lib/sources';
+
+/**
+ * Approved officials and offices page (lab ch16): soft blue band, executive, council by district,
+ * offices, and one merged source line. While nothing is verified, production shows a notice.
+ */
+const officials = await getPublished('officials');
+const offices = (await getPublished('offices')).sort((a, b) =>
+  a.data.name.localeCompare(b.data.name, 'en'),
+);
+const groups = groupOfficials(officials);
+const hasPeople = groups.executive.length > 0 || groups.districts.length > 0;
+const { sources, lastVerified } = mergeSources(
+  [...officials, ...offices].map((entry) => entry.data),
+);
+
+const navItems = [
+  ...(groups.executive.length > 0 ? [{ id: 'executive', label: t('gov.executive') }] : []),
+  ...(groups.districts.length > 0 ? [{ id: 'council', label: t('gov.council') }] : []),
+  { id: 'offices', label: t('gov.offices') },
+];
+
+const pageUrl = new URL('/government/', Astro.site ?? site.url).toString();
+const issueUrl = buildIssueUrl(site.repoUrl, { title: t('gov.title'), url: pageUrl });
+const noindex = [...officials, ...offices].some((entry) => entry.data.status === 'needs-review');
+---
+
+<BaseLayout
+  title={t('gov.title')}
+  description={t('gov.description')}
+  section="government"
+  {noindex}
+>
+  <div class:list={['band', { 'has-nav': navItems.length > 1 }]}>
+    <div class="inner">
+      <Breadcrumb items={[{ label: t('nav.home'), href: '/' }, { label: t('gov.title') }]} />
+      <h1>{t('gov.title')}</h1>
+      <p class="lede">{t('gov.description')}</p>
+      {navItems.length > 1 && <SegmentedNav label={t('gov.jumpTo')} items={navItems} />}
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="inner">
+      {!hasPeople && (
+        <div class="wait">
+          <span class="tile">
+            <Icon name="safety" size={20} />
+          </span>
+          <div>
+            <p class="wait-title">{t('gov.pending')}</p>
+            <p>{t('gov.pendingNote')}</p>
+            <a href={site.officialWebsite} rel="external">
+              {t('footer.official')} ↗
+            </a>
+          </div>
+        </div>
+      )}
+
+      {groups.executive.length > 0 && (
+        <section id="executive" aria-labelledby="executive-h">
+          <h2 id="executive-h">{t('gov.executive')}</h2>
+          <ul class="grid two">
+            {groups.executive.map((official) => (
+              <li>
+                <OfficialCard {official} variant="large" />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {groups.districts.length > 0 && (
+        <section id="council" aria-labelledby="council-h">
+          <h2 id="council-h">{t('gov.council')}</h2>
+          {groups.districts.map((group) => (
+            <>
+              <h3>{t('gov.district', { n: group.district })}</h3>
+              <ul class="grid three">
+                {group.members.map((official) => (
+                  <li>
+                    <OfficialCard {official} />
+                  </li>
+                ))}
+              </ul>
+            </>
+          ))}
+          {groups.exOfficio.length > 0 && (
+            <>
+              <h3>{t('gov.exOfficio')}</h3>
+              <ul class="grid three">
+                {groups.exOfficio.map((official) => (
+                  <li>
+                    <OfficialCard {official} />
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </section>
+      )}
+
+      <section id="offices" aria-labelledby="offices-h">
+        <h2 id="offices-h">{t('gov.offices')}</h2>
+        {offices.length > 0 ? (
+          <ul class="grid two">
+            {offices.map((office) => (
+              <li>
+                <OfficeCard {office} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="none">{t('gov.noOffices')}</p>
+        )}
+      </section>
+
+      <SourceLine {sources} {lastVerified} {issueUrl} />
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .band {
+    padding: 0 16px 22px;
+    border-bottom: 1px solid var(--color-band-soft-edge);
+    background: var(--color-band-soft);
+  }
+  .inner {
+    width: 100%;
+    max-width: 61.25rem;
+    margin-inline: auto;
+  }
+  .band .inner {
+    padding-top: 20px;
+  }
+  .body {
+    padding: 4px 16px 64px;
+  }
+  .band.has-nav {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+  h1 {
+    margin: 12px 0 6px;
+    font-size: var(--text-2xl);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+  .lede {
+    max-width: 52ch;
+    margin-bottom: 18px;
+    font-size: 1.0625rem;
+    line-height: 1.4;
+    color: var(--color-muted);
+  }
+  section {
+    scroll-margin-top: var(--space-6);
+  }
+  h2 {
+    margin: 32px 0 10px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+  h3 {
+    margin: 22px 0 10px;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .grid > li > :global(*) {
+    height: 100%;
+  }
+  .none {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 14px;
+    border-radius: 14px;
+    background: var(--color-surface);
+    font-size: 0.875rem;
+    color: var(--color-muted);
+  }
+  .wait {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 640px;
+    margin-top: 28px;
+    padding: 18px;
+    border-radius: 14px;
+    background: var(--color-surface);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--color-text-2);
+  }
+  .tile {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-primary);
+  }
+  .wait-title {
+    margin-bottom: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+  .wait a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap-min);
+    font-weight: 600;
+    color: var(--color-link);
+    text-decoration: none;
+  }
+  @media (min-width: 40rem) {
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 48rem) {
+    .band {
+      padding: 0 22px 28px;
+    }
+    .band.has-nav {
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--color-band-soft-edge);
+    }
+    .body {
+      padding-inline: 22px;
+    }
+    .wait {
+      flex-direction: row;
+      padding: 20px;
+    }
+  }
+</style>

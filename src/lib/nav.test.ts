@@ -30,6 +30,6 @@ describe('menu', () => {
     const links = menuLinks();
     expect(new Set(links).size).toBe(links.length);
     expect(links).toContain('/hotlines/');
-    expect(links).not.toContain('/government/');
+    expect(links).toContain('/government/');
   });
 });

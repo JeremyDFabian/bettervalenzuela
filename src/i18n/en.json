@@ -270,5 +270,21 @@
   "a11y.limits": "Some official documents we link to, such as scanned PDFs on the city website, may not be accessible. We do not control those files, but we summarize the key information on our pages wherever we can.",
   "a11y.ctaTitle": "Something hard to use?",
   "a11y.ctaText": "Tell us which page and what went wrong. We aim to reply within a week.",
-  "a11y.ctaButton": "Report a problem"
+  "a11y.ctaButton": "Report a problem",
+  "gov.title": "Officials and offices",
+  "gov.description": "Valenzuela's elected officials by district, and the city offices that serve residents.",
+  "gov.jumpTo": "Jump to",
+  "gov.executive": "Executive",
+  "gov.council": "City Council",
+  "gov.offices": "Offices",
+  "gov.district": "District {n}",
+  "gov.exOfficio": "Ex-officio members",
+  "gov.position.mayor": "City Mayor",
+  "gov.position.vice-mayor": "Vice Mayor",
+  "gov.position.representative": "Representative, District {n}",
+  "gov.position.councilor": "Councilor, District {n}",
+  "gov.term": "Term {start}–{end}",
+  "gov.pending": "Officials' information is being verified.",
+  "gov.pendingNote": "We list an official only after checking the name against an official source. Until then, see the official city website.",
+  "gov.noOffices": "No verified offices yet."
 }

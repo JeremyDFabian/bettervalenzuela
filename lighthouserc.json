@@ -6,7 +6,8 @@
         "http://localhost/",
         "http://localhost/services/",
         "http://localhost/services/business/sample-business-permit/",
-        "http://localhost/hotlines/"
+        "http://localhost/hotlines/",
+        "http://localhost/government/"
       ],
       "numberOfRuns": 1
     },

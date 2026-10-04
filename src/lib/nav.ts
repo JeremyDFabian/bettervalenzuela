@@ -36,7 +36,7 @@ export const menu: MenuEntry[] = [
             labelKey: 'nav.item.officials',
             descKey: 'nav.item.officials.d',
             icon: 'office',
-            comingSoon: true,
+            href: '/government/',
           },
           {
             labelKey: 'nav.item.barangays',

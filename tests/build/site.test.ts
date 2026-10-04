@@ -95,8 +95,8 @@ describe.each([
     }
   });
 
-  test('never links to sections that are not built yet', () => {
-    const unbuilt = [
+  test('links to a section only when that section is built', () => {
+    const sections = [
       '/government/',
       '/barangays/',
       '/ordinances/',
@@ -106,10 +106,12 @@ describe.each([
       '/history/',
       '/quiz/',
     ];
-    for (const file of htmlFiles(dir)) {
-      const html = readFileSync(file, 'utf8');
-      for (const path of unbuilt) {
-        expect(html, `${file} links to ${path}`).not.toContain(`href="${path}"`);
+    for (const path of sections) {
+      if (existsSync(join(dir, path, 'index.html'))) continue;
+      for (const file of htmlFiles(dir)) {
+        expect(readFileSync(file, 'utf8'), `${file} links to ${path}`).not.toContain(
+          `href="${path}"`,
+        );
       }
     }
   });
@@ -268,5 +270,29 @@ describe('main menu accessibility', () => {
       expect(button).toContain('aria-expanded="false"');
       expect(button).toMatch(/aria-controls="[^"]+"/);
     }
+  });
+});
+
+describe('government page', () => {
+  test('production shows the being-verified notice and no unverified names', () => {
+    const html = read(PROD, 'government/index.html');
+    expect(html.replaceAll('&#39;', "'")).toContain("Officials' information is being verified.");
+    expect(html).not.toContain('data-review-badge');
+  });
+
+  test('drafts list the mayor first, both districts, and ex-officio members, with badges and noindex', () => {
+    const html = read(DRAFTS, 'government/index.html');
+    expect(html).toContain('City Mayor');
+    expect(html).toContain('District 1');
+    expect(html).toContain('District 2');
+    expect(html).toContain('Ex-officio members');
+    expect(html).toContain('data-review-badge');
+    expect(html).toMatch(/<meta name="robots" content="noindex"\s*\/?>/);
+    expect(html.indexOf('City Mayor')).toBeLessThan(html.indexOf('Councilor, District 1'));
+  });
+
+  test('the menu links to it in both builds', () => {
+    for (const dir of [PROD, DRAFTS])
+      expect(read(dir, 'about/index.html')).toContain('href="/government/"');
   });
 });
