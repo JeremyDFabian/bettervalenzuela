@@ -1,9 +1,13 @@
 import { describe, expect, test } from 'vitest';
 import { z } from 'astro/zod';
 import {
+  barangaySchema,
+  coordinatesSchema,
   feeSchema,
+  historySchema,
   hotlinesSchema,
   officeSchema,
+  officialSchema,
   serviceCategorySchema,
   serviceFields,
   sourceSchema,
@@ -167,4 +171,91 @@ describe('hotlinesSchema', () => {
 
 test('astro/zod is the zod instance the schemas use', () => {
   expect(sourceSchema).toBeInstanceOf(z.ZodObject);
+});
+
+describe('coordinatesSchema', () => {
+  test('accepts a point in Valenzuela', () => {
+    expect(coordinatesSchema.safeParse({ lat: 14.7, lng: 120.97 }).success).toBe(true);
+  });
+  test('rejects swapped lat/lng and points outside the city', () => {
+    expect(coordinatesSchema.safeParse({ lat: 120.97, lng: 14.7 }).success).toBe(false);
+    expect(coordinatesSchema.safeParse({ lat: 14.6, lng: 120.98 }).success).toBe(false); // Manila
+  });
+});
+
+describe('officialSchema', () => {
+  const base = { name: 'A. Cruz', termStart: '2025-06-30', termEnd: '2028-06-30', ...verified };
+  test('accepts a mayor without district and a councilor with one', () => {
+    expect(officialSchema.safeParse({ ...base, position: 'mayor' }).success).toBe(true);
+    expect(officialSchema.safeParse({ ...base, position: 'councilor', district: 2 }).success).toBe(
+      true,
+    );
+  });
+  test('requires a district for councilors and representatives, and forbids it otherwise', () => {
+    expect(officialSchema.safeParse({ ...base, position: 'councilor' }).success).toBe(false);
+    expect(officialSchema.safeParse({ ...base, position: 'representative' }).success).toBe(false);
+    expect(officialSchema.safeParse({ ...base, position: 'mayor', district: 1 }).success).toBe(
+      false,
+    );
+  });
+  test('requires a role for ex-officio members', () => {
+    expect(officialSchema.safeParse({ ...base, position: 'ex-officio' }).success).toBe(false);
+    expect(
+      officialSchema.safeParse({ ...base, position: 'ex-officio', role: 'SK Federation President' })
+        .success,
+    ).toBe(true);
+  });
+  test('rejects a term that ends before it starts, and district 3', () => {
+    expect(
+      officialSchema.safeParse({ ...base, position: 'mayor', termEnd: '2024-01-01' }).success,
+    ).toBe(false);
+    expect(officialSchema.safeParse({ ...base, position: 'councilor', district: 3 }).success).toBe(
+      false,
+    );
+  });
+  test('allows a future term end (unlike lastVerified)', () => {
+    expect(officialSchema.parse({ ...base, position: 'mayor' }).termEnd).toBeInstanceOf(Date);
+  });
+});
+
+describe('barangaySchema', () => {
+  const base = { name: 'Malinta', district: 1, hallAddress: 'MacArthur Hwy', ...verified };
+  test('accepts a barangay without coordinates or phones', () => {
+    const parsed = barangaySchema.parse(base);
+    expect(parsed.phones).toEqual([]);
+    expect(parsed.coordinates).toBeUndefined();
+  });
+  test('accepts a barangay without a hall address (none is published officially yet)', () => {
+    const rest = { ...base, hallAddress: undefined };
+    expect(barangaySchema.safeParse(rest).success).toBe(true);
+  });
+  test('rejects coordinates outside the city', () => {
+    expect(barangaySchema.safeParse({ ...base, coordinates: { lat: 0, lng: 0 } }).success).toBe(
+      false,
+    );
+  });
+  test('rejects a missing source', () => {
+    expect(barangaySchema.safeParse({ ...base, sources: [] }).success).toBe(false);
+  });
+});
+
+describe('historySchema', () => {
+  const event = {
+    year: 1623,
+    title: 'Polo founded',
+    description: 'The town of Polo is founded.',
+    sources: verified.sources,
+  };
+  test('accepts a timeline with sourced events', () => {
+    const parsed = historySchema.parse({ timeline: [event], ...verified });
+    expect(parsed.timeline[0]?.featured).toBe(false);
+  });
+  test('rejects an event without sources and a non-integer year', () => {
+    expect(
+      historySchema.safeParse({ timeline: [{ ...event, sources: [] }], ...verified }).success,
+    ).toBe(false);
+    expect(
+      historySchema.safeParse({ timeline: [{ ...event, year: 1623.5 }], ...verified }).success,
+    ).toBe(false);
+  });
 });

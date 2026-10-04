@@ -104,3 +104,91 @@ export const hotlinesSchema = z.object({
     .min(1),
   ...verifiableFields,
 });
+
+/** A point inside a box around Valenzuela; catches swapped or mistyped coordinates. */
+export const coordinatesSchema = z.object({
+  lat: z.number().min(14.65).max(14.75),
+  lng: z.number().min(120.92).max(121.02),
+});
+
+export const officialPositions = [
+  'mayor',
+  'vice-mayor',
+  'representative',
+  'councilor',
+  'ex-officio',
+] as const;
+export type OfficialPosition = (typeof officialPositions)[number];
+
+const district = z.union([z.literal(1), z.literal(2)]);
+
+/** Official fields except `photo`, which content.config.ts adds with Astro's image() helper. */
+export const officialFields = {
+  name: text,
+  position: z.enum(officialPositions),
+  district: district.optional(),
+  /** Title of an ex-officio member, e.g. "Liga ng mga Barangay President". */
+  role: text.optional(),
+  termStart: z.coerce.date(),
+  termEnd: z.coerce.date(),
+  contact: z.object({ phones: z.array(text).default([]), email: z.email().optional() }).optional(),
+  ...verifiableFields,
+};
+
+type OfficialShape = {
+  position: OfficialPosition;
+  district?: 1 | 2 | undefined;
+  role?: string | undefined;
+  termStart: Date;
+  termEnd: Date;
+};
+
+/** Cross-field rules for officials: term order, district only for representatives and councilors, a role for ex-officio. */
+export function withOfficialRules<T extends z.ZodType<OfficialShape>>(schema: T) {
+  return schema
+    .refine((o) => o.termEnd > o.termStart, {
+      message: 'termEnd must be after termStart',
+      path: ['termEnd'],
+    })
+    .refine(
+      (o) =>
+        o.position === 'representative' || o.position === 'councilor'
+          ? o.district !== undefined
+          : o.district === undefined,
+      {
+        message: 'district is required for representatives and councilors, and only for them',
+        path: ['district'],
+      },
+    )
+    .refine((o) => o.position !== 'ex-officio' || o.role !== undefined, {
+      message: 'ex-officio members need a role',
+      path: ['role'],
+    });
+}
+
+/** The official schema without a photo (used by tests). */
+export const officialSchema = withOfficialRules(z.object(officialFields));
+
+export const barangaySchema = z.object({
+  name: text,
+  district,
+  hallAddress: text.optional(),
+  phones: z.array(text).default([]),
+  coordinates: coordinatesSchema.optional(),
+  ...verifiableFields,
+});
+
+export const historySchema = z.object({
+  timeline: z
+    .array(
+      z.object({
+        year: z.number().int(),
+        title: text,
+        description: text,
+        featured: z.boolean().default(false),
+        sources: z.array(sourceSchema).min(1),
+      }),
+    )
+    .min(1),
+  ...verifiableFields,
+});
