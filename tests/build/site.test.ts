@@ -114,3 +114,23 @@ describe.each([
     }
   });
 });
+
+describe('services listing', () => {
+  test('lists every category, even with no verified services', () => {
+    const html = read(PROD, 'services/index.html');
+    for (const id of ['certificates', 'business', 'tax', 'environment']) {
+      expect(html).toContain(`href="/services/${id}/"`);
+    }
+  });
+
+  test('production category pages show the empty state instead of samples', () => {
+    const html = read(PROD, 'services/business/index.html');
+    expect(html).toContain('No verified services in this category yet.');
+    expect(html).not.toContain('(sample)');
+  });
+
+  test('drafts category pages list the sample service', () => {
+    const html = read(DRAFTS, 'services/business/index.html');
+    expect(html).toContain('href="/services/business/sample-business-permit/"');
+  });
+});

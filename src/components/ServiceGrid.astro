@@ -1,0 +1,52 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import ServiceCard from './ServiceCard.astro';
+import { t } from '../i18n/t';
+import { totalFee } from '../lib/fees';
+import { formatPeso } from '../lib/format';
+import { serviceHref } from '../lib/routes';
+
+interface Props {
+  services: CollectionEntry<'services'>[];
+}
+
+const { services } = Astro.props;
+---
+
+<ul class="grid">
+  {services.map((service) => {
+    const total = totalFee(service.data.fees);
+    return (
+      <li>
+        <ServiceCard
+          href={serviceHref(service.data.category.id, service.id)}
+          title={service.data.title}
+          summary={service.data.summary}
+          fee={total === 0 ? t('services.free') : formatPeso(total)}
+          free={total === 0}
+          processingTime={service.data.processingTime}
+        />
+      </li>
+    );
+  })}
+</ul>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    padding: 0;
+    list-style: none;
+  }
+  @media (min-width: 40rem) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 56rem) {
+    .grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

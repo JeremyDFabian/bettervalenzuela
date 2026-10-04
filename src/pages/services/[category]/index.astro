@@ -1,0 +1,172 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../../components/Breadcrumb.astro';
+import Icon from '../../../components/Icon.astro';
+import ServiceGrid from '../../../components/ServiceGrid.astro';
+import { t } from '../../../i18n/t';
+import { byTitle, getPublished } from '../../../lib/content';
+
+export async function getStaticPaths() {
+  const categories = await getCollection('serviceCategories');
+  return categories.map((category) => ({ params: { category: category.id }, props: { category } }));
+}
+
+interface Props {
+  category: CollectionEntry<'serviceCategories'>;
+}
+
+const { category } = Astro.props;
+const services = (await getPublished('services'))
+  .filter((service) => service.data.category.id === category.id)
+  .sort(byTitle);
+const countLabel =
+  services.length === 1 ? t('services.countOne') : t('services.count', { count: services.length });
+---
+
+<BaseLayout title={category.data.name} description={category.data.description} section="services">
+  <div class="band">
+    <div class="wrap">
+      <Breadcrumb
+        items={[
+          { label: t('nav.home'), href: '/' },
+          { label: t('services.title'), href: '/services/' },
+          { label: category.data.name },
+        ]}
+      />
+      <div class="title">
+        <span class="tile">
+          <Icon name={category.data.icon} size={26} />
+        </span>
+        <div>
+          <h1>{category.data.name}</h1>
+          <p class="lede">{category.data.description}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap body">
+    {services.length === 0 ? (
+      <div class="empty">
+        <span class="tile">
+          <Icon name={category.data.icon} size={26} />
+        </span>
+        <p class="empty-title">{t('services.empty')}</p>
+        <p>{t('services.emptyNote')}</p>
+        <a class="btn btn-primary" href="/services/">
+          {t('services.browseAll')}
+        </a>
+      </div>
+    ) : (
+      <>
+        <p class="count">{countLabel}</p>
+        <ServiceGrid {services} />
+      </>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .wrap {
+    width: 100%;
+    max-width: 56.25rem;
+    margin-inline: auto;
+    padding-inline: var(--space-4);
+  }
+  .band {
+    padding-block: 20px var(--space-5);
+    border-bottom: 1px solid var(--color-band-soft-edge);
+    background: var(--color-band-soft);
+  }
+  .title {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+  .tile {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+    color: var(--color-primary);
+  }
+  h1 {
+    margin-bottom: 6px;
+    font-size: var(--text-2xl);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+  .lede {
+    max-width: 46ch;
+    font-size: 1.0625rem;
+    line-height: 1.4;
+    color: var(--color-muted);
+  }
+  .body {
+    padding-block: 28px var(--space-8);
+  }
+  .count {
+    margin-bottom: 10px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+  .empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: var(--space-6) 20px;
+    border-radius: 18px;
+    background: var(--color-surface);
+    text-align: center;
+    color: var(--color-muted);
+    font-size: 0.9375rem;
+  }
+  .empty .tile {
+    margin-bottom: var(--space-2);
+  }
+  .empty-title {
+    font-size: 1.1875rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+  .empty .btn {
+    align-self: stretch;
+    margin-top: var(--space-4);
+  }
+  @media (min-width: 48rem) {
+    .wrap {
+      padding-inline: 22px;
+    }
+    .band {
+      padding-bottom: var(--space-6);
+    }
+    .title {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 18px;
+    }
+    .tile {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+    }
+    .empty {
+      padding: 40px 28px;
+    }
+    .empty .btn {
+      align-self: center;
+      min-height: 36px;
+      font-size: var(--text-sm);
+    }
+  }
+</style>

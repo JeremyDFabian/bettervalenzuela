@@ -1,0 +1,183 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+import Icon from '../../components/Icon.astro';
+import SegmentedNav from '../../components/SegmentedNav.astro';
+import ServiceGrid from '../../components/ServiceGrid.astro';
+import { t } from '../../i18n/t';
+import { byTitle, getPublished } from '../../lib/content';
+import { categoryHref } from '../../lib/routes';
+
+/** Approved Option B: groups for categories with services, the rest in one "Not yet listed" block. */
+const categories = (await getCollection('serviceCategories')).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+const services = (await getPublished('services')).sort(byTitle);
+const groups = categories.map((category) => ({
+  category,
+  services: services.filter((service) => service.data.category.id === category.id),
+}));
+const filled = groups.filter((group) => group.services.length > 0);
+const empty = groups.filter((group) => group.services.length === 0);
+const countLabel = (count: number) =>
+  count === 1 ? t('services.countOne') : t('services.count', { count });
+---
+
+<BaseLayout title={t('services.title')} description={t('services.description')} section="services">
+  <div class="wrap page">
+    <Breadcrumb items={[{ label: t('nav.home'), href: '/' }, { label: t('services.title') }]} />
+    <div class="top">
+      <h1>{t('services.title')}</h1>
+      {filled.length > 0 && (
+        <SegmentedNav
+          label={t('services.jumpTo')}
+          items={filled.map(({ category }) => ({ id: category.id, label: category.data.name }))}
+        />
+      )}
+    </div>
+
+    {filled.map(({ category, services: list }) => (
+      <section id={category.id} aria-labelledby={`${category.id}-h`}>
+        <div class="group-head">
+          <h2 id={`${category.id}-h`}>
+            <Icon name={category.data.icon} size={16} />
+            {category.data.name}
+          </h2>
+          <a href={categoryHref(category.id)}>{countLabel(list.length)} ›</a>
+        </div>
+        <ServiceGrid services={list} />
+      </section>
+    ))}
+
+    {empty.length > 0 && (
+      <section aria-labelledby="not-listed-h" data-pagefind-ignore>
+        <div class="group-head">
+          <h2 id="not-listed-h">{t('services.notListed')}</h2>
+        </div>
+        <p class="note">{t('services.notListedNote')}</p>
+        <ul class="not-listed">
+          {empty.map(({ category }) => (
+            <li>
+              <a href={categoryHref(category.id)}>
+                <Icon name={category.data.icon} size={18} />
+                <span>{category.data.name}</span>
+                <span class="chev" aria-hidden="true">
+                  ›
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .wrap {
+    width: 100%;
+    max-width: 56.25rem;
+    margin-inline: auto;
+    padding-inline: var(--space-4);
+  }
+  .page {
+    padding-block: 20px var(--space-8);
+  }
+  .top {
+    margin-bottom: var(--space-2);
+  }
+  h1 {
+    margin: var(--space-1) 0 var(--space-4);
+    font-size: var(--text-2xl);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+  section {
+    scroll-margin-top: var(--space-6);
+  }
+  .group-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin: var(--space-6) 0 10px;
+  }
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+  h2 :global(.icon) {
+    color: var(--color-primary);
+  }
+  .group-head a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap-min);
+    font-size: 0.8125rem;
+    color: var(--color-link);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .note {
+    max-width: 60ch;
+    margin-bottom: var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+  }
+  .not-listed {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    padding: 0;
+    list-style: none;
+  }
+  .not-listed a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 0 14px;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .not-listed a:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+  }
+  .not-listed :global(.icon) {
+    color: var(--color-muted);
+  }
+  .chev {
+    margin-left: auto;
+    color: #aeaeb2;
+  }
+  @media (min-width: 40rem) {
+    .not-listed {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 48rem) {
+    .wrap {
+      padding-inline: 22px;
+    }
+    .top {
+      text-align: center;
+    }
+  }
+  @media (min-width: 56rem) {
+    .not-listed {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

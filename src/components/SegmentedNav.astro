@@ -1,0 +1,117 @@
+---
+/**
+ * Approved jump navigation for long pages (hotlines, services): a gray pill with the current
+ * item raised on desktop, a swipeable row with the current item in black on phones.
+ * Links point to sections on the same page; a small script follows the scroll position.
+ */
+interface Props {
+  label: string;
+  items: { id: string; label: string }[];
+}
+
+const { label, items } = Astro.props;
+---
+
+<nav class="seg" aria-label={label} data-segmented-nav data-pagefind-ignore>
+  {items.map((item, index) => (
+    <a href={`#${item.id}`} aria-current={index === 0 ? 'true' : undefined}>
+      {item.label}
+    </a>
+  ))}
+</nav>
+
+<script>
+  for (const nav of document.querySelectorAll<HTMLElement>('[data-segmented-nav]')) {
+    const links = [...nav.querySelectorAll<HTMLAnchorElement>('a[href^="#"]')];
+    const sections = links
+      .map((link) => document.getElementById(decodeURIComponent(link.hash.slice(1))))
+      .filter((section): section is HTMLElement => section !== null);
+
+    const setCurrent = (id: string) => {
+      for (const link of links) {
+        if (link.hash !== `#${id}`) {
+          link.removeAttribute('aria-current');
+          continue;
+        }
+        link.setAttribute('aria-current', 'true');
+        // Keep the current item visible in the swipe row without moving the page.
+        nav.scrollTo({ left: link.offsetLeft - (nav.clientWidth - link.offsetWidth) / 2 });
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((entry) => entry.isIntersecting);
+        const first = visible.sort(
+          (a, b) => a.boundingClientRect.top - b.boundingClientRect.top,
+        )[0];
+        if (first) setCurrent(first.target.id);
+      },
+      { rootMargin: '0px 0px -70% 0px' },
+    );
+    for (const section of sections) observer.observe(section);
+  }
+</script>
+
+<style>
+  .seg {
+    position: relative;
+    display: flex;
+    gap: 4px;
+    margin-inline: calc(var(--space-4) * -1);
+    padding: 4px var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .seg::-webkit-scrollbar {
+    display: none;
+  }
+  a {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    min-height: var(--tap-min);
+    padding: 0 16px;
+    border-radius: 10px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  a:hover {
+    color: var(--color-text);
+    background: var(--color-surface);
+  }
+  a[aria-current] {
+    background: var(--color-text);
+    color: var(--color-bg);
+    font-weight: 600;
+  }
+  @media (min-width: 48rem) {
+    .seg {
+      display: inline-flex;
+      gap: 2px;
+      max-width: 100%;
+      margin-inline: 0;
+      padding: 4px;
+      border-bottom: 0;
+      border-radius: 14px;
+      background: var(--color-field);
+    }
+    a {
+      min-height: 40px;
+    }
+    a:hover {
+      background: var(--color-surface-hover);
+    }
+    a[aria-current] {
+      background: var(--color-bg);
+      color: var(--color-text);
+      box-shadow:
+        0 1px 3px rgb(0 0 0 / 0.1),
+        0 1px 1px rgb(0 0 0 / 0.04);
+    }
+  }
+</style>
