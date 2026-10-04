@@ -1,0 +1,326 @@
+---
+import Icon from './Icon.astro';
+import { t } from '../i18n/t';
+import { toTelHref } from '../lib/phone';
+
+/**
+ * Approved phone buttons: a solid blue call button for the first dialable number, then one gray
+ * icon button. One number: the icon copies it. Two or more: the icon opens a menu that calls or
+ * copies each number. Numbers that cannot be dialled are only copied.
+ */
+interface Props {
+  numbers: string[];
+  /** Who the numbers belong to, for button labels. */
+  name: string;
+  id: string;
+  /** Emergency numbers such as 911 use the solid red button. */
+  tone?: 'danger' | undefined;
+}
+
+const { numbers, name, id, tone } = Astro.props;
+const entries = numbers.map((number) => ({ number, href: toTelHref(number) }));
+const primary = entries.find((entry) => entry.href !== null);
+const menuId = `${id}-menu`;
+// An emergency number alone gets one full-width "Call 911" button (approved, lab #c14).
+const solo = tone === 'danger' && entries.length === 1 && primary !== undefined;
+---
+
+{entries.length > 0 && (
+  <div class:list={['actions', { solo }]} data-phone-actions data-copied-text={t('phone.copied')}>
+    {primary ? (
+      <a
+        class:list={['call', tone]}
+        href={primary.href}
+        aria-label={
+          // The accessible name must start with the visible text (WCAG 2.5.3, voice control).
+          solo
+            ? t('phone.callSoloLabel', { name, number: primary.number })
+            : t('phone.callLabel', { name, number: primary.number })
+        }
+      >
+        <Icon name="phone" size={15} />
+        <span class="num">
+          {solo ? t('phone.callNumber', { number: primary.number }) : primary.number}
+        </span>
+      </a>
+    ) : (
+      <span class="call plain">{entries[0]!.number}</span>
+    )}
+    {solo ? null : entries.length === 1 ? (
+      <button
+        type="button"
+        class="icon-btn"
+        data-copy={entries[0]!.number}
+        aria-label={t('phone.copyLabel', { number: entries[0]!.number })}
+      >
+        <Icon name="copy" size={15} class="idle" />
+        <Icon name="check" size={15} class="done" />
+      </button>
+    ) : (
+      <>
+        <button
+          type="button"
+          class="icon-btn"
+          popovertarget={menuId}
+          aria-label={t('phone.moreLabel', { name })}
+        >
+          <Icon name="more" size={15} />
+        </button>
+        <div
+          id={menuId}
+          class="menu"
+          popover
+          role="menu"
+          aria-label={t('phone.moreLabel', { name })}
+        >
+          {entries
+            .filter((entry) => entry.href !== null && entry.href !== primary?.href)
+            .map((entry) => (
+              <a class="item" role="menuitem" href={entry.href}>
+                <Icon name="phone" size={15} class="lead call-icon" />
+                <span>
+                  <small>{t('phone.call')}</small>
+                  <b>{entry.number}</b>
+                </span>
+              </a>
+            ))}
+          {entries.map((entry) => (
+            <button type="button" class="item" role="menuitem" data-copy={entry.number}>
+              <Icon name="copy" size={15} class="lead" />
+              <span>
+                <small>{t('phone.copy')}</small>
+                <b>{entry.number}</b>
+              </span>
+              <span class="copied">
+                <Icon name="check" size={14} />
+                {t('phone.copied')}
+              </span>
+            </button>
+          ))}
+        </div>
+      </>
+    )}
+    <span class="visually-hidden" aria-live="polite" data-copy-status />
+  </div>
+)}
+
+<script>
+  const COPIED_MS = 1500;
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-phone-actions]')) {
+    const status = root.querySelector<HTMLElement>('[data-copy-status]');
+
+    for (const button of root.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
+      button.addEventListener('click', async () => {
+        const number = button.dataset.copy ?? '';
+        try {
+          await navigator.clipboard.writeText(number);
+        } catch {
+          return; // Clipboard refused: the number stays visible to copy by hand.
+        }
+        button.dataset.copied = '';
+        if (status) status.textContent = `${root.dataset.copiedText ?? ''} ${number}`;
+        setTimeout(() => {
+          delete button.dataset.copied;
+          button.dataset.restored = '';
+          setTimeout(() => delete button.dataset.restored, 300);
+        }, COPIED_MS);
+      });
+    }
+
+    // Place the menu under its button (popovers open in the top layer).
+    const trigger = root.querySelector<HTMLButtonElement>('[popovertarget]');
+    const menu = root.querySelector<HTMLElement>('[popover]');
+    if (trigger && menu) {
+      menu.addEventListener('beforetoggle', (event) => {
+        if ((event as ToggleEvent).newState !== 'open') return;
+        const box = trigger.getBoundingClientRect();
+        menu.style.top = `${box.bottom + 6}px`;
+        menu.style.left = `${Math.max(8, box.right - 260)}px`;
+      });
+    }
+  }
+</script>
+
+<style>
+  .actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--tap-min);
+    gap: 6px;
+  }
+  .actions.solo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .solo .call {
+    justify-content: center;
+  }
+  .call {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    height: var(--tap-min);
+    padding: 0 12px;
+    border-radius: 10px;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-decoration: none;
+    transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .call:hover {
+    background: var(--color-primary-hover);
+    color: var(--color-on-primary);
+  }
+  /* Press depth depends on width: wide buttons move less (approved motion). */
+  .call:active {
+    transform: scale(0.985);
+    transition-duration: 0.08s;
+  }
+  .call.danger {
+    background: linear-gradient(#dc2626, #b91c1c);
+  }
+  .call.danger:hover {
+    background: linear-gradient(#e02d2d, #a91919);
+  }
+  .call.plain {
+    background: var(--color-surface);
+    color: var(--color-text);
+  }
+  .num {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--tap-min);
+    height: var(--tap-min);
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: #e8e8ed;
+    color: var(--color-text-2);
+    cursor: pointer;
+    transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .icon-btn:hover {
+    background: #dedee3;
+  }
+  .icon-btn:active {
+    transform: scale(0.96);
+    transition-duration: 0.08s;
+  }
+  .icon-btn :global(.done),
+  .icon-btn[data-copied] :global(.idle) {
+    display: none;
+  }
+  .icon-btn[data-copied] :global(.done) {
+    display: inline-flex;
+    color: var(--color-ok);
+    animation: swap-in 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .icon-btn[data-restored] :global(.idle) {
+    animation: swap-in 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  @keyframes swap-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+      filter: blur(4px);
+    }
+  }
+  .menu {
+    position: fixed;
+    inset: auto;
+    width: 260px;
+    margin: 0;
+    padding: 6px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--color-bg);
+    box-shadow: var(--shadow-pop);
+  }
+  .item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: var(--tap-min);
+    padding: 6px 10px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--color-text);
+    font: inherit;
+    font-size: 0.8125rem;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .item:hover {
+    background: var(--color-surface);
+    color: var(--color-text);
+  }
+  .item small {
+    display: block;
+    font-size: 0.6875rem;
+    color: var(--color-muted);
+  }
+  .item b {
+    font-weight: 600;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .item :global(.lead) {
+    color: var(--color-muted);
+  }
+  .item :global(.call-icon) {
+    color: var(--color-primary);
+  }
+  .copied {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--color-ok);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .item[data-copied] .copied {
+    opacity: 1;
+  }
+  @media (min-width: 48rem) {
+    .actions:not(.solo) {
+      grid-template-columns: minmax(0, 1fr) 36px;
+    }
+    .call,
+    .icon-btn {
+      height: 36px;
+    }
+    .call {
+      font-size: 0.8125rem;
+    }
+    .icon-btn {
+      width: 36px;
+    }
+    .call:active {
+      transform: scale(0.97);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .call,
+    .icon-btn,
+    .copied {
+      transition: none;
+    }
+    .icon-btn :global(.icon) {
+      animation: none !important;
+    }
+  }
+</style>

@@ -1,0 +1,488 @@
+---
+import { getCollection } from 'astro:content';
+import Icon from './Icon.astro';
+import Wordmark from './Wordmark.astro';
+import Search from './islands/Search.astro';
+import { t } from '../i18n/t';
+import { menu } from '../lib/nav';
+import { byTitle, getPublished } from '../lib/content';
+import { categoryHref, serviceHref } from '../lib/routes';
+import type { IconName } from '../lib/icons';
+
+interface Props {
+  /** The home page hides the header search because the hero has the big one. */
+  showSearch?: boolean | undefined;
+}
+
+const { showSearch = true } = Astro.props;
+const current = Astro.url.pathname;
+
+const categories = (await getCollection('serviceCategories')).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+const popular = (await getPublished('services'))
+  .filter((s) => s.data.popular)
+  .sort(byTitle)
+  .slice(0, 4);
+
+const servicePanel = {
+  categories: categories.slice(0, 5).map((c) => ({
+    href: categoryHref(c.id),
+    label: c.data.name,
+    desc: c.data.description,
+    icon: c.data.icon as IconName,
+  })),
+  popular: popular.map((s) => ({
+    href: serviceHref(s.data.category.id, s.id),
+    label: s.data.title,
+    desc: s.data.summary,
+  })),
+};
+const isCurrent = (href?: string) => (href ? current.startsWith(href) : false);
+---
+
+<header class="site-header" data-site-header data-pagefind-ignore>
+  <div class="container bar">
+    <Wordmark />
+    <nav class="menu" aria-label={t('nav.label')}>
+      <ul class="top">
+        {menu.map((entry, index) => {
+          const hasPanel = entry.panel === 'services' || (entry.groups?.length ?? 0) > 0;
+          const label = t(entry.labelKey);
+          const panelId = `menu-panel-${index}`;
+          return (
+            <li class:list={['top-item', { 'has-panel': hasPanel }]}>
+              {entry.href ? (
+                <a
+                  class="top-link"
+                  href={entry.href}
+                  aria-current={isCurrent(entry.href) ? 'page' : undefined}
+                >
+                  {label}
+                  {hasPanel && <Icon name="chevronDown" size={14} class="chev" />}
+                </a>
+              ) : (
+                <button
+                  class="top-link"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls={panelId}
+                  data-menu-toggle
+                >
+                  {label}
+                  <Icon name="chevronDown" size={14} class="chev" />
+                </button>
+              )}
+              {entry.panel === 'services' && (
+                <div class="panel wide" id={panelId}>
+                  <div>
+                    <p class="ph">{t('nav.group.byCategory')}</p>
+                    {servicePanel.categories.map((c) => (
+                      <a class="pi" href={c.href}>
+                        <Icon name={c.icon} size={20} class="pic" />
+                        <span>
+                          <b>{c.label}</b>
+                          <small>{c.desc}</small>
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                  {servicePanel.popular.length > 0 && (
+                    <div>
+                      <p class="ph">{t('nav.group.popular')}</p>
+                      {servicePanel.popular.map((s) => (
+                        <a class="pi plain" href={s.href}>
+                          <span>
+                            <b>{s.label}</b>
+                            <small>{s.desc}</small>
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                  <a class="pall" href="/services/">
+                    {t('nav.allCategories')} ›
+                  </a>
+                </div>
+              )}
+              {entry.groups && (
+                <div class:list={['panel', { wide: entry.groups.length > 1 }]} id={panelId}>
+                  {entry.groups.map((group) => (
+                    <div>
+                      <p class="ph">{t(group.headingKey)}</p>
+                      {group.items.map((item) =>
+                        item.href ? (
+                          <a class="pi" href={item.href}>
+                            <Icon name={item.icon} size={20} class="pic" />
+                            <span>
+                              <b>{t(item.labelKey)}</b>
+                              {item.descKey && <small>{t(item.descKey)}</small>}
+                            </span>
+                          </a>
+                        ) : (
+                          <span class="pi soon">
+                            <Icon name={item.icon} size={20} class="pic" />
+                            <span>
+                              <b>{t(item.labelKey)}</b>
+                              <small>{t('nav.comingSoon')}</small>
+                            </span>
+                          </span>
+                        ),
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+    <div class="end">
+      {showSearch && (
+        <>
+          <div class="desk-search">
+            <Search />
+          </div>
+          <a class="icon-btn phone-only" href="/search/" aria-label={t('search.label')}>
+            <Icon name="search" size={22} />
+          </a>
+        </>
+      )}
+      <details class="sheet phone-only">
+        <summary class="icon-btn" aria-label={t('nav.label')}>
+          <svg
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="M4 8h16M4 16h16"></path>
+          </svg>
+        </summary>
+        <div class="sheet-body">
+          {menu.map((entry) => (
+            <div class="sheet-group">
+              {entry.href ? (
+                <a class="sheet-top" href={entry.href}>
+                  {t(entry.labelKey)}
+                </a>
+              ) : (
+                <p class="sheet-top">{t(entry.labelKey)}</p>
+              )}
+              {entry.groups
+                ?.flatMap((g) => g.items)
+                .map((item) =>
+                  item.href ? (
+                    <a class="sheet-item" href={item.href}>
+                      {t(item.labelKey)}
+                    </a>
+                  ) : (
+                    <span class="sheet-item soon">
+                      {t(item.labelKey)} · {t('nav.comingSoon')}
+                    </span>
+                  ),
+                )}
+            </div>
+          ))}
+        </div>
+      </details>
+    </div>
+  </div>
+</header>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-site-header]');
+  if (header) {
+    const update = () => header.toggleAttribute('data-scrolled', window.scrollY > 8);
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  }
+
+  // Menu panels open on hover and focus (CSS) and on click (this script). Escape closes the
+  // open panel and keeps it closed until the pointer or focus leaves (WCAG 1.4.13).
+  const items = [...document.querySelectorAll<HTMLElement>('.top-item.has-panel')];
+  const setOpen = (item: HTMLElement, open: boolean) => {
+    item.toggleAttribute('data-open', open);
+    item.querySelector('[data-menu-toggle]')?.setAttribute('aria-expanded', String(open));
+  };
+  for (const item of items) {
+    item.querySelector('[data-menu-toggle]')?.addEventListener('click', () => {
+      const open = !item.hasAttribute('data-open');
+      for (const other of items) setOpen(other, false);
+      item.removeAttribute('data-dismissed');
+      setOpen(item, open);
+    });
+    item.addEventListener('mouseleave', () => item.removeAttribute('data-dismissed'));
+    item.addEventListener('focusout', (event) => {
+      if (!item.contains(event.relatedTarget as Node | null)) {
+        item.removeAttribute('data-dismissed');
+        setOpen(item, false);
+      }
+    });
+  }
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    for (const item of items) {
+      if (item.matches(':hover, :focus-within, [data-open]')) {
+        const focusInside = item.contains(document.activeElement);
+        item.setAttribute('data-dismissed', '');
+        setOpen(item, false);
+        if (focusInside) item.querySelector<HTMLElement>('.top-link')?.focus();
+      }
+    }
+  });
+  document.addEventListener('click', (event) => {
+    for (const item of items) {
+      if (!item.contains(event.target as Node)) setOpen(item, false);
+    }
+  });
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--color-bg);
+    transition:
+      box-shadow 0.2s,
+      margin 0.2s,
+      border-radius 0.2s;
+  }
+  .site-header[data-scrolled] {
+    box-shadow:
+      0 10px 30px rgb(0 0 0 / 0.08),
+      0 1px 3px rgb(0 0 0 / 0.05);
+  }
+  @media (min-width: 64rem) {
+    .site-header[data-scrolled] {
+      top: 10px;
+      margin-inline: max(16px, calc((100% - var(--max-width)) / 2));
+      border: 1px solid #e5e5ea;
+      border-radius: 18px;
+    }
+  }
+  .bar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    min-height: 72px;
+  }
+  .top {
+    display: flex;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .top-item {
+    position: relative;
+  }
+  .top-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: var(--radius-md);
+    background: transparent;
+    font: inherit;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .top-link :global(.chev) {
+    color: var(--color-muted);
+    transition: transform 0.15s;
+  }
+  .top-item:hover .top-link,
+  .top-item:focus-within .top-link {
+    background: var(--color-surface);
+  }
+  .top-item:hover :global(.chev),
+  .top-item:focus-within :global(.chev) {
+    transform: rotate(180deg);
+  }
+  .top-link[aria-current='page'] {
+    font-weight: 700;
+  }
+  .panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%;
+    z-index: 60;
+    display: none;
+    width: 320px;
+    padding: 14px;
+    border: 1px solid #e5e5ea;
+    border-radius: var(--radius-xl);
+    background: var(--color-bg);
+    box-shadow: var(--shadow-pop);
+    transform: translateX(-50%);
+  }
+  .panel.wide {
+    display: none;
+    grid-template-columns: 1.25fr 1fr;
+    gap: 0 8px;
+    width: 640px;
+  }
+  .panel::before {
+    content: '';
+    position: absolute;
+    inset: -10px 0 auto;
+    height: 10px;
+  }
+  .top-item:not([data-dismissed]):hover .panel,
+  .top-item:not([data-dismissed]):focus-within .panel,
+  .top-item[data-open] .panel {
+    display: block;
+  }
+  .top-item:not([data-dismissed]):hover .panel.wide,
+  .top-item:not([data-dismissed]):focus-within .panel.wide,
+  .top-item[data-open] .panel.wide {
+    display: grid;
+  }
+  .ph {
+    margin: 4px 10px 6px;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--color-muted);
+  }
+  .pi {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    min-height: var(--tap-min);
+    padding: 9px 10px;
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  a.pi:hover,
+  a.pi:focus-visible {
+    background: var(--color-surface);
+  }
+  .pi :global(.pic) {
+    margin-top: 2px;
+    color: var(--color-primary);
+  }
+  .pi b {
+    display: block;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .pi small {
+    display: block;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    color: var(--color-muted);
+  }
+  .pi.soon {
+    color: var(--color-muted);
+  }
+  .pi.soon :global(.pic) {
+    color: #aeaeb2;
+  }
+  .pall {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    margin-top: 8px;
+    padding: 0 10px;
+    border-top: 1px solid #e5e5ea;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--color-link);
+    text-decoration: none;
+  }
+  .end {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+  .icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--tap-min);
+    height: var(--tap-min);
+    border-radius: var(--radius-md);
+    color: var(--color-text);
+    cursor: pointer;
+    list-style: none;
+  }
+  .icon-btn::-webkit-details-marker {
+    display: none;
+  }
+  .phone-only {
+    display: none;
+  }
+  .sheet-body {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    padding: 8px 16px 24px;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg);
+    box-shadow: var(--shadow-pop);
+  }
+  .sheet-group {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .sheet-top {
+    display: flex;
+    align-items: center;
+    min-height: var(--tap-min);
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  .sheet-item {
+    display: flex;
+    align-items: center;
+    min-height: var(--tap-min);
+    padding-left: 12px;
+    font-size: 1rem;
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  .sheet-item.soon {
+    color: var(--color-muted);
+  }
+  @media (max-width: 63.99rem) {
+    .bar {
+      display: flex;
+      min-height: 60px;
+    }
+    .bar > :global(.wordmark) {
+      margin-right: auto;
+    }
+    .menu,
+    .desk-search {
+      display: none;
+    }
+    .phone-only {
+      display: flex;
+    }
+    .sheet {
+      display: block;
+    }
+  }
+</style>

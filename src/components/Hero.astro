@@ -1,0 +1,241 @@
+---
+import { getEntry } from 'astro:content';
+import Icon from './Icon.astro';
+import Search from './islands/Search.astro';
+import { t } from '../i18n/t';
+import { byTitle, getPublished } from '../lib/content';
+import { requireEntry } from '../lib/references';
+import { serviceHref } from '../lib/routes';
+
+/**
+ * Approved home hero (lab #c15): title, lede, the large search, then up to four popular services
+ * as cards. With no published popular service, three plain links take their place.
+ * The logo behind the text is pending until the maintainer sends the file.
+ */
+const MAX_POPULAR = 4;
+
+const popular = await Promise.all(
+  (await getPublished('services'))
+    .filter((service) => service.data.popular)
+    .sort(byTitle)
+    .slice(0, MAX_POPULAR)
+    .map(async (service) => ({
+      service,
+      category: requireEntry(await getEntry(service.data.category), {
+        from: `services/${service.id}`,
+        field: 'category',
+        id: service.data.category.id,
+      }),
+    })),
+);
+---
+
+<section class="hero" data-home-hero>
+  <div class="container">
+    <h1>{t('home.title')}</h1>
+    <p class="lede">{t('home.lead')}</p>
+    <Search variant="hero" />
+
+    {popular.length > 0 ? (
+      <div class={`services count-${popular.length}`}>
+        <div class="services-head">
+          <h2>{t('home.servicesTitle')}</h2>
+          <a href="/services/">{t('home.allServices')} ›</a>
+        </div>
+        <ul class="cards">
+          {popular.map(({ service, category }) => (
+            <li>
+              <a href={serviceHref(category.id, service.id)}>
+                <span class="tile">
+                  <Icon name={category.data.icon} size={20} />
+                </span>
+                <span class="text">
+                  <span class="name">{service.data.title}</span>
+                  <span class="note">{service.data.summary}</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ) : (
+      <ul class="links">
+        <li>
+          <a href="/services/">{t('home.browseServices')} ›</a>
+        </li>
+        <li>
+          <a href="/hotlines/">{t('hotlines.title')} ›</a>
+        </li>
+        <li>
+          <a href="/about/">{t('home.aboutProject')} ›</a>
+        </li>
+      </ul>
+    )}
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-block: 72px 80px;
+    text-align: center;
+  }
+  h1 {
+    margin: 0 auto 18px;
+    font-size: clamp(1.75rem, 8.5vw, 2.125rem);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+  .lede {
+    max-width: 36ch;
+    margin: 0 auto 26px;
+    font-size: 1.125rem;
+    line-height: 1.35;
+    color: var(--color-muted);
+  }
+  .services {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+  .services-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-top: 32px;
+  }
+  .services-head h2 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-muted);
+  }
+  .services-head a,
+  .links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap-min);
+    color: var(--color-link);
+    text-decoration: none;
+  }
+  .services-head a {
+    font-size: 0.9375rem;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+    text-align: left;
+  }
+  .cards a {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    height: 100%;
+    min-height: 64px;
+    padding: 10px 14px;
+    border-radius: 18px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    text-decoration: none;
+    transition: background-color 0.15s;
+  }
+  .cards a:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+  }
+  .tile {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+    color: var(--color-primary);
+  }
+  .text {
+    display: grid;
+    min-width: 0;
+  }
+  .name {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+  .note {
+    overflow: hidden;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    color: var(--color-muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 28px;
+    padding: 0;
+    list-style: none;
+    font-size: 1.0625rem;
+  }
+  @media (min-width: 48rem) {
+    .hero {
+      padding-block: 120px 128px;
+    }
+    h1 {
+      max-width: 20ch;
+      font-size: 4.5rem;
+      line-height: 1.03;
+    }
+    .lede {
+      margin-bottom: 36px;
+      font-size: 1.375rem;
+    }
+    .services-head {
+      margin-top: 48px;
+    }
+    .services-head ~ .cards {
+      margin-top: 12px;
+    }
+    /* The row is as wide as its cards, so the heading lines up with them. */
+    .count-1 {
+      max-width: 15rem;
+    }
+    .count-2 {
+      max-width: 30.75rem;
+    }
+    .count-3 {
+      max-width: 46.5rem;
+    }
+    .count-2 .cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .count-3 .cards {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .count-4 .cards {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .cards a {
+      min-height: 76px;
+      padding: 14px 18px;
+    }
+    .links {
+      flex-direction: row;
+      justify-content: center;
+      gap: 8px 28px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cards a {
+      transition: none;
+    }
+  }
+</style>

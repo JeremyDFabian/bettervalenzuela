@@ -1,0 +1,19 @@
+Content license
+
+The content of BetterValenzuela is licensed under the Creative Commons
+Attribution 4.0 International License (CC BY 4.0).
+
+"Content" means the city information and page text in this repository:
+everything under src/content/ and src/data/, and the text in src/i18n/.
+The code that builds the site is licensed separately under the MIT License
+(see LICENSE).
+
+You may share and adapt the content for any purpose, including commercially,
+as long as you give appropriate credit to BetterValenzuela, link to this
+license, and indicate if changes were made.
+
+Facts themselves, such as a phone number or a fee, are not covered by
+copyright. Official documents cited as sources remain under their own terms.
+
+Full legal text: https://creativecommons.org/licenses/by/4.0/legalcode
+Summary: https://creativecommons.org/licenses/by/4.0/

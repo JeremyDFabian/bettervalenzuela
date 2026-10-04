@@ -1,0 +1,67 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import ServiceCard from './ServiceCard.astro';
+import { t } from '../i18n/t';
+import { summarizeFees, type FeeSummary } from '../lib/fees';
+import { formatPeso } from '../lib/format';
+import { serviceHref } from '../lib/routes';
+
+interface Props {
+  services: CollectionEntry<'services'>[];
+}
+
+const { services } = Astro.props;
+
+function feeLabel(summary: FeeSummary): { text: string; tone?: 'free' | 'varies' } {
+  switch (summary.kind) {
+    case 'none':
+      return { text: t('services.feeNone') };
+    case 'fixed':
+      return summary.total === 0
+        ? { text: t('services.free'), tone: 'free' }
+        : { text: formatPeso(summary.total) };
+    case 'from':
+      return { text: t('services.feeFrom', { amount: formatPeso(summary.min) }), tone: 'varies' };
+    case 'varies':
+      return { text: t('services.feeVaries'), tone: 'varies' };
+  }
+}
+---
+
+<ul class="grid">
+  {services.map((service) => {
+    const fee = feeLabel(summarizeFees(service.data.fees));
+    return (
+      <li>
+        <ServiceCard
+          href={serviceHref(service.data.category.id, service.id)}
+          title={service.data.title}
+          summary={service.data.summary}
+          fee={fee.text}
+          tone={fee.tone}
+          processingTime={service.data.processingTime}
+        />
+      </li>
+    );
+  })}
+</ul>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    padding: 0;
+    list-style: none;
+  }
+  @media (min-width: 40rem) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 56rem) {
+    .grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

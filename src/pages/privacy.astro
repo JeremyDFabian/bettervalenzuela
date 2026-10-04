@@ -1,0 +1,84 @@
+---
+import InfoLayout from '../layouts/InfoLayout.astro';
+import { t, type MessageKey } from '../i18n/t';
+import { site } from '../site.config';
+
+const glance: [MessageKey, MessageKey, boolean][] = [
+  ['privacy.g1', 'privacy.none', true],
+  ['privacy.g2', 'privacy.none', true],
+  ['privacy.g3', 'privacy.none', true],
+  ['privacy.g4', 'privacy.none', true],
+  ['privacy.g5', 'privacy.anon', false],
+];
+const sections: [MessageKey, MessageKey][] = [
+  ['privacy.s1', 'privacy.p1'],
+  ['privacy.s2', 'privacy.p2'],
+  ['privacy.s3', 'privacy.p3'],
+  ['privacy.s4', 'privacy.p4'],
+  ['privacy.s5', 'privacy.p5'],
+];
+const [rightsBefore = '', rightsAfter = ''] = t('privacy.p6').split('{link}');
+---
+
+<InfoLayout
+  title={t('privacy.title')}
+  description={t('privacy.description')}
+  lede={t('privacy.description')}
+>
+  <div class="glance card" data-pagefind-ignore>
+    <h2>{t('privacy.glance')}</h2>
+    <dl>
+      {glance.map(([label, value, ok]) => (
+        <div>
+          <dt>{t(label)}</dt>
+          <dd class:list={{ ok }}>{t(value)}</dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+  {sections.map(([h, p]) => (
+    <>
+      <h2>{t(h)}</h2>
+      <p>{t(p)}</p>
+    </>
+  ))}
+  <h2>{t('privacy.s6')}</h2>
+  <p>
+    {rightsBefore}
+    <a href={`${site.repoUrl}/issues/new/choose`} rel="external">
+      {t('privacy.ask')}
+    </a>
+    {rightsAfter}
+  </p>
+</InfoLayout>
+
+<style>
+  .glance {
+    max-width: 520px;
+    margin-bottom: var(--space-2);
+    padding: 20px;
+  }
+  .glance h2 {
+    margin: 0 0 12px;
+    font-size: 1.0625rem;
+    font-weight: 700;
+  }
+  dl div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+    padding: 7px 0;
+    font-size: var(--text-sm);
+  }
+  dt {
+    color: var(--color-muted);
+  }
+  dd {
+    margin: 0;
+    font-weight: 600;
+    text-align: right;
+  }
+  dd.ok {
+    color: var(--color-ok);
+  }
+</style>

@@ -1,0 +1,35 @@
+name: Source link check
+
+on:
+  schedule:
+    - cron: '0 1 * * 1' # Mondays 01:00 UTC (09:00 Manila)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm sources
+      - name: Open or update the tracking issue
+        if: hashFiles('source-report.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create source-links --color B60205 --description "Broken source links" 2>/dev/null || true
+          existing=$(gh issue list --label source-links --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --body-file source-report.md
+          else
+            gh issue create --title "Broken source links" --label source-links --body-file source-report.md
+          fi

@@ -1,0 +1,26 @@
+# SAMPLE for development. Plan 3 replaces the entries with verified numbers.
+entries:
+  - name: National emergency hotline
+    category: emergency
+    numbers: ['911']
+    note: Police, fire, ambulance · 24 hours
+  - name: Police station (sample)
+    category: police
+    numbers: ['(02) 8000-0101', '0917 000 0101']
+    note: Main station · 24 hours
+  - name: Fire station (sample)
+    category: fire
+    numbers: ['(02) 8292-3519']
+  - name: Provincial line (sample)
+    category: utility
+    numbers: ['(044) 791-0000']
+    note: Shown as text because it cannot be dialled from a link
+  - name: City Hall trunkline (sample)
+    category: office
+    numbers: ['(02) 8352-1000']
+sources:
+  - title: City of Valenzuela official website
+    url: https://www.valenzuela.gov.ph/
+    accessed: 2026-10-02
+lastVerified: 2026-10-02
+status: needs-review

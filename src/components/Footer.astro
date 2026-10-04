@@ -1,0 +1,127 @@
+---
+import { site } from '../site.config';
+import { t } from '../i18n/t';
+
+const [before = '', after = ''] = t('footer.disclaimer').split('{link}');
+const year = new Date().getFullYear();
+const links = [
+  { href: site.officialWebsite, label: `${t('footer.official')} ↗`, external: true },
+  { href: '/about/', label: t('footer.about') },
+  { href: `${site.repoUrl}/issues/new/choose`, label: t('footer.report'), external: true },
+  { href: '/privacy/', label: t('footer.privacy') },
+  { href: '/accessibility/', label: t('footer.accessibility') },
+  { href: site.repoUrl, label: t('footer.github'), external: true },
+];
+---
+
+<footer class="site-footer" data-pagefind-ignore>
+  <div class="container">
+    <div class="top">
+      <div class="about">
+        <a class="name" href="/">
+          {site.portalName}
+        </a>
+        <p class="disclaimer">
+          {before}
+          <a href={site.officialWebsite} rel="external">
+            {t('footer.disclaimerLink')}
+          </a>
+          {after}
+        </p>
+      </div>
+      <nav aria-label={t('footer.label')}>
+        <ul>
+          {links.map((link) => (
+            <li>
+              <a href={link.href} rel={link.external ? 'external' : undefined}>
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+    <div class="bottom">
+      <span>{t('footer.copyright', { year })}</span>
+      <span>{t('footer.license')}</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--color-footer);
+    color: var(--color-footer-text);
+    padding-block: 48px 28px;
+    font-size: var(--text-sm);
+    line-height: 1.55;
+  }
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 48px;
+    padding-bottom: 28px;
+  }
+  .name {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap-min);
+    font-size: 1.1875rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--color-footer-link);
+    text-decoration: none;
+  }
+  .disclaimer {
+    margin-top: var(--space-2);
+    max-width: 52ch;
+  }
+  .disclaimer a {
+    color: #2997ff;
+  }
+  ul {
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 0 32px;
+    padding: 0;
+    list-style: none;
+  }
+  li a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap-min);
+    color: var(--color-footer-link);
+    font-weight: 500;
+    text-decoration: none;
+  }
+  li a:hover {
+    text-decoration: underline;
+  }
+  .bottom {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    padding-top: 18px;
+    border-top: 1px solid #424245;
+    font-size: var(--text-xs);
+  }
+  @media (max-width: 47.99rem) {
+    .site-footer {
+      padding-block: 36px 24px;
+    }
+    .top {
+      flex-direction: column;
+      gap: var(--space-5);
+    }
+    nav,
+    ul {
+      width: 100%;
+    }
+    ul {
+      grid-template-columns: 1fr 1fr;
+      gap: 0 16px;
+    }
+  }
+</style>

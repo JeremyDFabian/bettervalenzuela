@@ -1,0 +1,618 @@
+---
+import { getEntry, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../../components/Breadcrumb.astro';
+import Checklist from '../../../components/Checklist.astro';
+import Icon from '../../../components/Icon.astro';
+import OfficeCard from '../../../components/OfficeCard.astro';
+import ReviewBadge from '../../../components/ReviewBadge.astro';
+import { site } from '../../../site.config';
+import { t } from '../../../i18n/t';
+import { getPublished } from '../../../lib/content';
+import { publishedOrNull } from '../../../lib/drafts';
+import { summarizeFees } from '../../../lib/fees';
+import { formatDate, formatPeso } from '../../../lib/format';
+import { buildIssueUrl } from '../../../lib/issues';
+import { requireEntry } from '../../../lib/references';
+import { categoryHref } from '../../../lib/routes';
+import type { Fee } from '../../../lib/schemas';
+
+export async function getStaticPaths() {
+  const services = await getPublished('services');
+  return services.map((service) => ({
+    params: { category: service.data.category.id, service: service.id },
+    props: { service },
+  }));
+}
+
+interface Props {
+  service: CollectionEntry<'services'>;
+}
+
+const { service } = Astro.props;
+const data = service.data;
+const from = `services/${service.id}`;
+const category = requireEntry(await getEntry(data.category), {
+  from,
+  field: 'category',
+  id: data.category.id,
+});
+// A verified service must not leak an unverified office into production.
+const office = publishedOrNull(
+  requireEntry(await getEntry(data.office), { from, field: 'office', id: data.office.id }),
+);
+
+const pageUrl = new URL(Astro.url.pathname, Astro.site ?? site.url).toString();
+const issueUrl = buildIssueUrl(site.repoUrl, { title: data.title, url: pageUrl });
+
+const summary = summarizeFees(data.fees);
+function keyFeeFact(): { value: string; link?: string } {
+  switch (summary.kind) {
+    case 'none':
+      return { value: t('service.feeNotListed') };
+    case 'fixed':
+      return {
+        value: summary.total === 0 ? t('service.free') : formatPeso(summary.total),
+        link: t('service.seeBreakdown'),
+      };
+    case 'from':
+      return {
+        value: t('service.feeFrom', { amount: formatPeso(summary.min) }),
+        link: t('service.howComputed'),
+      };
+    case 'varies':
+      return { value: t('service.feeVaries'), link: t('service.howComputed') };
+  }
+}
+const keyFee = keyFeeFact();
+
+function feeValue(fee: Fee): { text: string; tone?: 'free' | 'varies' } {
+  if ('amount' in fee) {
+    return fee.amount === 0
+      ? { text: t('service.free'), tone: 'free' }
+      : { text: formatPeso(fee.amount) };
+  }
+  if ('min' in fee)
+    return { text: `${formatPeso(fee.min)}–${formatPeso(fee.max)}`, tone: 'varies' };
+  return { text: t('service.feeVaries'), tone: 'varies' };
+}
+
+const officialHost = data.officialLink
+  ? new URL(data.officialLink).hostname.replace(/^www\./, '')
+  : undefined;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'GovernmentService',
+  name: data.title,
+  description: data.summary,
+  serviceType: category.data.name,
+  areaServed: { '@type': 'City', name: site.cityFullName },
+  ...(office && { provider: { '@type': 'GovernmentOrganization', name: office.data.name } }),
+  url: pageUrl,
+};
+---
+
+<BaseLayout
+  title={data.title}
+  description={data.summary}
+  {jsonLd}
+  section="services"
+  noindex={data.status === 'needs-review'}
+>
+  <div class="band">
+    <div class="narrow">
+      <Breadcrumb
+        items={[
+          { label: t('nav.home'), href: '/' },
+          { label: t('services.title'), href: '/services/' },
+          { label: category.data.name, href: categoryHref(category.id) },
+          { label: data.title },
+        ]}
+      />
+      <h1>{data.title}</h1>
+      {data.status === 'needs-review' && <ReviewBadge />}
+      <p class="lede">{data.summary}</p>
+      <div class="facts">
+        <div class="fee-fact">
+          <span class="label">{t('service.keyFee')}</span>
+          <span class="fee-value">{keyFee.value}</span>
+          {keyFee.link && <a href="#fees">{keyFee.link}</a>}
+        </div>
+        <div class="small-facts">
+          <div>
+            <span class="label">{t('service.keyProcessing')}</span>
+            <span class="value">{data.processingTime}</span>
+          </div>
+          <div>
+            <span class="label">{t('service.keyDocuments')}</span>
+            <span class="value">{data.requirements.length}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="narrow body">
+    <section aria-labelledby="who-h">
+      <h2 id="who-h">{t('service.whoCanApply')}</h2>
+      <ul class="who">
+        {data.whoCanApply.map((item) => (
+          <li>
+            <Icon name="checkCircle" size={20} />
+            <span>
+              {item.condition}
+              {item.note && <small>{item.note}</small>}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <Checklist
+      heading={t('service.requirements')}
+      items={data.requirements}
+      storageKey={`${category.id}-${service.id}`}
+    />
+
+    <section aria-labelledby="steps-h">
+      <h2 id="steps-h">{t('service.steps')}</h2>
+      <ol class="steps">
+        {data.steps.map((step) => (
+          <li>
+            <div>
+              <p class="step-title">{step.title}</p>
+              <p class="step-detail">{step.detail}</p>
+              {step.where && (
+                <p class="where">
+                  <Icon name="map" size={14} />
+                  {step.where}
+                </p>
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section id="fees" class="card receipt" aria-labelledby="fees-h">
+      <h2 id="fees-h">{t('service.fees')}</h2>
+      {summary.kind === 'none' ? (
+        <>
+          <p class="none">{t('service.noFees')}</p>
+          <p class="note">{t('service.noFeesNote')}</p>
+        </>
+      ) : (
+        <>
+          <dl>
+            {data.fees.map((fee) => {
+              const value = feeValue(fee);
+              return (
+                <div class="row">
+                  <dt>
+                    {fee.item}
+                    {'basis' in fee && <small>{fee.basis}</small>}
+                  </dt>
+                  <dd class:list={[value.tone]}>{value.text}</dd>
+                </div>
+              );
+            })}
+          </dl>
+          {summary.kind === 'fixed' ? (
+            <p class="total">
+              <span>{t('service.total')}</span>
+              <span>{summary.total === 0 ? t('service.free') : formatPeso(summary.total)}</span>
+            </p>
+          ) : (
+            <p class="note">{t('service.assessNote')}</p>
+          )}
+        </>
+      )}
+    </section>
+
+    <section aria-labelledby="office-h">
+      <h2 id="office-h">{t('service.whereToGo')}</h2>
+      {office ? (
+        <OfficeCard {office} />
+      ) : (
+        <div class="pending">
+          <span class="tile">
+            <Icon name="office" size={20} />
+          </span>
+          <div>
+            <p class="pending-title">{t('service.officePending')}</p>
+            <p>{t('service.officePendingNote')}</p>
+          </div>
+        </div>
+      )}
+    </section>
+
+    <section class="card about" aria-labelledby="about-h" data-pagefind-ignore>
+      <h2 id="about-h">{t('service.aboutInfo')}</h2>
+      <dl>
+        <div class="row">
+          <dt>{data.sources.length > 1 ? t('service.sources') : t('service.source')}</dt>
+          <dd>
+            {data.sources.map((source, index) => (
+              <>
+                {index > 0 && ', '}
+                <a href={source.url} rel="external">
+                  {source.title}
+                </a>
+              </>
+            ))}
+          </dd>
+        </div>
+        <div class="row">
+          <dt>{t('service.lastVerified')}</dt>
+          <dd>{formatDate(data.lastVerified)}</dd>
+        </div>
+        {officialHost && (
+          <div class="row">
+            <dt>{t('service.officialPage')}</dt>
+            <dd>{officialHost}</dd>
+          </div>
+        )}
+      </dl>
+      <div class="about-actions">
+        {data.officialLink && (
+          <a class="go" href={data.officialLink} rel="external">
+            {t('service.officialLink')}
+            <Icon name="external" size={16} />
+          </a>
+        )}
+        <a class="report" href={issueUrl} rel="external">
+          {t('meta.reportError')}
+        </a>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .band {
+    padding-block: 20px 26px;
+    border-bottom: 1px solid var(--color-band-soft-edge);
+    background: var(--color-band-soft);
+  }
+  h1 {
+    margin-top: var(--space-3);
+    font-size: var(--text-2xl);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.08;
+    text-wrap: balance;
+  }
+  .lede {
+    margin: 6px 0 20px;
+    font-size: 1.0625rem;
+    color: var(--color-text-2);
+  }
+  .facts {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .fee-fact {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 18px 20px;
+    border-radius: var(--radius-xl);
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+  .fee-fact .label {
+    font-size: 0.8125rem;
+  }
+  .fee-value {
+    font-size: 2.5rem;
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .fee-fact a {
+    align-self: flex-start;
+    font-size: 0.8125rem;
+    color: var(--color-on-primary);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .small-facts {
+    display: grid;
+    gap: 8px;
+  }
+  .small-facts div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    background: var(--color-bg);
+  }
+  .small-facts .label {
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+  }
+  .small-facts .value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    text-align: right;
+  }
+  .body {
+    display: grid;
+    gap: var(--space-6);
+    padding-block: var(--space-6) var(--space-8);
+  }
+  .body :global(h2) {
+    margin-bottom: 12px;
+    font-size: 1.375rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+  .who {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+  }
+  .who li {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+    padding: 12px 14px;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+  }
+  .who li + li {
+    border-top: 1px solid var(--color-border);
+  }
+  .who :global(.icon) {
+    margin-top: 1px;
+    color: var(--color-primary);
+  }
+  .who small {
+    display: block;
+    margin-top: 1px;
+    font-size: 0.78125rem;
+    color: var(--color-muted);
+  }
+  .steps {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: step;
+  }
+  .steps li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 18px;
+    padding-bottom: 32px;
+    counter-increment: step;
+  }
+  .steps li:last-child {
+    padding-bottom: 0;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+  .steps li::after {
+    content: '';
+    position: absolute;
+    top: 34px;
+    bottom: 4px;
+    left: 13.25px;
+    width: 1.5px;
+    background: var(--color-band-soft-edge);
+  }
+  .steps li:last-child::after {
+    display: none;
+  }
+  .step-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 28px;
+  }
+  .step-detail {
+    margin-top: 2px;
+    font-size: 0.90625rem;
+    line-height: 1.6;
+    color: var(--color-text-2);
+  }
+  .where {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    font-size: 0.78125rem;
+    color: var(--color-muted);
+  }
+  .card {
+    max-width: 520px;
+    padding: 20px;
+    border: 1px solid #ececf0;
+    border-radius: var(--radius-lg);
+    background: var(--color-bg);
+    box-shadow: var(--shadow-card);
+  }
+  .receipt {
+    max-width: 420px;
+    scroll-margin-top: var(--space-6);
+  }
+  .card :global(h2) {
+    font-size: 1.1875rem;
+    font-weight: 700;
+  }
+  dl {
+    margin: 0;
+  }
+  .receipt .row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: start;
+    padding: 7px 0;
+  }
+  .receipt dt {
+    font-size: 0.84375rem;
+    line-height: 1.4;
+    color: var(--color-muted);
+  }
+  .receipt dt small {
+    display: block;
+    margin-top: 1px;
+    font-size: 0.71875rem;
+  }
+  .receipt dd {
+    margin: 0;
+    font-size: 0.90625rem;
+    font-weight: 600;
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .receipt dd.free {
+    color: var(--color-ok);
+  }
+  .receipt dd.varies {
+    color: var(--color-link);
+  }
+  .total {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 22px;
+    font-size: 1rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .receipt .note {
+    margin-top: 20px;
+    font-size: 0.78125rem;
+    line-height: 1.45;
+    color: var(--color-text-2);
+  }
+  .none {
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
+  .receipt .none + .note {
+    margin-top: 2px;
+    color: var(--color-muted);
+  }
+  .pending {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    max-width: 520px;
+    padding: 18px;
+    border: 1px dashed var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    font-size: 0.875rem;
+    color: var(--color-muted);
+  }
+  .pending .tile {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+  }
+  .pending-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+  .about .row {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 12px;
+    padding: 6px 0;
+    font-size: 0.84375rem;
+  }
+  .about dt {
+    color: var(--color-muted);
+  }
+  .about dd {
+    margin: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .about-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .about-actions a {
+    display: inline-flex;
+    flex: 1 1 100%;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: var(--tap-min);
+    padding: 0 16px;
+    border-radius: var(--radius-lg);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .go {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+  .go:hover {
+    background: var(--color-primary-hover);
+    color: var(--color-on-primary);
+  }
+  .report {
+    background: var(--color-field);
+    color: var(--color-text);
+  }
+  .report:hover {
+    background: var(--color-surface-hover);
+    color: var(--color-text);
+  }
+  @media (min-width: 48rem) {
+    .band {
+      padding-block: 28px;
+    }
+    .facts {
+      grid-template-columns: 1.3fr 1fr;
+    }
+    .fee-fact {
+      justify-content: space-between;
+      min-height: 132px;
+    }
+    .small-facts {
+      grid-template-rows: 1fr 1fr;
+    }
+    .about .row {
+      grid-template-columns: 110px minmax(0, 1fr);
+    }
+    .about-actions a {
+      flex: none;
+    }
+  }
+</style>

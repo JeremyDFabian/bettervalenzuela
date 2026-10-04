@@ -1,0 +1,105 @@
+---
+import Icon from './Icon.astro';
+import { t } from '../i18n/t';
+import { getPublished } from '../lib/content';
+import { tickerItems } from '../lib/hotlines';
+
+// The hotline file may be missing or unverified in production: tickerItems still offers 911.
+const [hotlines] = await getPublished('hotlines');
+const items = tickerItems(hotlines?.data.entries ?? [], 3);
+const [first, ...rest] = items;
+---
+
+<div class="strip" data-pagefind-ignore>
+  <div class="container inner">
+    <span class="label">{t('strip.label')}</span>
+    <nav class="numbers" aria-label={t('ticker.label')}>
+      {first && (
+        <a class="emergency" href={first.href ?? '/hotlines/'}>
+          <Icon name="phone" size={12} />
+          {first.number}
+        </a>
+      )}
+      {rest.map((item) =>
+        item.href ? (
+          <a class="extra" href={item.href}>
+            {item.name} {item.number}
+          </a>
+        ) : (
+          <span class="extra">
+            {item.name} {item.number}
+          </span>
+        ),
+      )}
+      <a class="all" href="/hotlines/">
+        {t('strip.all')}
+      </a>
+    </nav>
+  </div>
+</div>
+
+<style>
+  .strip {
+    background: var(--color-strip);
+    border-bottom: 1px solid #ececf0;
+    font-size: var(--text-xs);
+    color: var(--color-muted);
+  }
+  .inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 32px;
+    gap: var(--space-4);
+  }
+  .numbers {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .numbers > * + *::before {
+    content: '';
+    display: inline-block;
+    width: 1px;
+    height: 12px;
+    margin-inline-end: 12px;
+    background: var(--color-border-strong);
+    vertical-align: middle;
+  }
+  a,
+  span.extra {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 32px;
+    color: var(--color-muted);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  a:hover {
+    color: var(--color-text);
+  }
+  .emergency {
+    color: var(--color-emergency);
+    font-weight: 500;
+  }
+  .emergency:hover {
+    color: var(--color-emergency);
+  }
+  @media (max-width: 47.99rem) {
+    .label,
+    .extra {
+      display: none;
+    }
+    .numbers {
+      width: 100%;
+      justify-content: space-between;
+    }
+    .all {
+      order: -1;
+    }
+    .numbers > * + *::before {
+      display: none;
+    }
+  }
+</style>

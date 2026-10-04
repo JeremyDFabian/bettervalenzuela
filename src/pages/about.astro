@@ -1,0 +1,244 @@
+---
+import InfoLayout from '../layouts/InfoLayout.astro';
+import Icon from '../components/Icon.astro';
+import { t, type MessageKey } from '../i18n/t';
+import { site } from '../site.config';
+
+const keys = (prefix: string, n: number) =>
+  Array.from({ length: n }, (_, i) => `${prefix}${i + 1}` as MessageKey);
+const [parentBefore = '', parentAfter = ''] = t('about.parent').split('{link}');
+const [whyBefore = '', whyAfter = ''] = t('about.whyIntro').split('{link}');
+const [lic1 = '', licRest = ''] = t('about.license').split('{mit}');
+const [lic2 = '', lic3 = ''] = licRest.split('{cc}');
+const [m1Before = '', m1After = ''] = t('about.mission1').split('#civictech');
+---
+
+<InfoLayout
+  title={t('about.title')}
+  description={t('about.description')}
+  lede={t('about.lede')}
+  showUpdated={false}
+>
+  <div class="mission" slot="band">
+    <h2>
+      <Icon name="target" size={20} />
+      {t('about.missionTitle')}
+    </h2>
+    <p>
+      {m1Before}
+      <span class="tag">#civictech</span>
+      {m1After}
+    </p>
+    <p>{t('about.mission2')}</p>
+  </div>
+
+  <p class="parent">
+    {parentBefore}
+    <a href={site.parent.url} rel="external">
+      {site.parent.name}
+    </a>
+    {parentAfter}
+  </p>
+
+  <h2>
+    <Icon name="flag" size={20} />
+    {t('about.goalsTitle')}
+  </h2>
+  <ul>
+    {keys('about.goal', 6).map((k) => (
+      <li>{t(k)}</li>
+    ))}
+  </ul>
+
+  <h2>
+    <Icon name="grid" size={20} />
+    {t('about.provideTitle')}
+  </h2>
+  <p>{t('about.provideIntro')}</p>
+  <div class="six">
+    {keys('about.provide', 6).map((k) => (
+      <div class="card">
+        <b>{t(k)}</b>
+        <span>{t(`${k}.d` as MessageKey)}</span>
+      </div>
+    ))}
+  </div>
+
+  <h2>
+    <Icon name="help" size={20} />
+    {t('about.whyTitle')}
+  </h2>
+  <p>
+    {whyBefore}
+    <a href={site.nationalPortal} rel="external">
+      www.gov.ph
+    </a>
+    {whyAfter}
+  </p>
+  <ul>
+    {keys('about.why', 5).map((k) => (
+      <li>{t(k)}</li>
+    ))}
+  </ul>
+  <p>{t('about.whyOutro')}</p>
+
+  <h2>
+    <Icon name="heart" size={20} />
+    {t('about.commitTitle')}
+  </h2>
+  <p class="shout">{t('about.commit0')}</p>
+  <p>{t('about.commit1')}</p>
+  <p>{t('about.commit2')}</p>
+  <p>{t('about.commit3')}</p>
+  <p class="shout2">{t('about.commit4')}</p>
+
+  <h2>
+    <Icon name="scale" size={20} />
+    {t('about.licenseTitle')}
+  </h2>
+  <p>
+    {lic1}
+    <a href={site.licenses.mit} rel="external">
+      {t('about.licenseMit')}
+    </a>
+    {lic2}
+    <a href={site.licenses.ccBy} rel="external">
+      {t('about.licenseCc')}
+    </a>
+    {lic3}
+  </p>
+
+  <div class="cta">
+    <b>{t('about.ctaTitle')}</b>
+    <p>{t('about.ctaText')}</p>
+    <div class="bts">
+      <a class="btn ghost" href={site.parent.contactUrl} rel="external">
+        {t('about.ctaContacts')}
+      </a>
+      <a class="btn white" href={site.parent.joinUrl} rel="external">
+        {t('about.ctaJoin')}
+      </a>
+    </div>
+  </div>
+</InfoLayout>
+
+<style>
+  .mission {
+    margin-top: var(--space-5);
+    padding: 22px 24px;
+    border-radius: 22px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    box-shadow: 0 10px 30px rgb(0 0 0 / 0.18);
+  }
+  .mission h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+  .mission h2 :global(.icon) {
+    color: var(--color-primary);
+  }
+  .mission p {
+    font-size: 1.03rem;
+    line-height: 1.6;
+  }
+  .mission p + p {
+    margin-top: 8px;
+  }
+  .tag {
+    display: inline-flex;
+    padding: 1px 9px;
+    border-radius: 999px;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 0.8125rem;
+    font-weight: 700;
+  }
+  .parent {
+    padding: 14px 16px;
+    border: 1px solid #ececf0;
+    border-radius: 14px;
+    box-shadow: var(--shadow-card);
+  }
+  .parent a {
+    font-weight: 600;
+  }
+  .six {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .six .card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+  .six b {
+    display: block;
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
+  .six span {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--color-muted);
+  }
+  .shout {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .shout2 {
+    margin-top: 12px;
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+  .cta {
+    margin-top: var(--space-7);
+    padding: 28px;
+    border-radius: 22px;
+    background: var(--color-primary);
+    color: #fff;
+    text-align: center;
+    box-shadow: 0 12px 30px rgb(0 113 227 / 0.22);
+  }
+  .cta b {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .cta p {
+    margin: 6px auto 18px;
+    max-width: 46ch;
+    color: #fff;
+  }
+  .bts {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .btn.ghost {
+    color: #fff;
+    background: rgb(255 255 255 / 0.16);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.4);
+  }
+  .btn.white {
+    background: #fff;
+    color: var(--color-primary);
+  }
+  @media (max-width: 47.99rem) {
+    .six {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .bts .btn {
+      flex: 1 1 100%;
+    }
+  }
+</style>

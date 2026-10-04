@@ -1,0 +1,25 @@
+# SAMPLE for development. Plan 3 replaces this with verified data from the Citizen's Charter.
+title: Copy of birth certificate (sample)
+summary: Sample entry showing a service with no fees listed. Not real requirements.
+whoCanApply:
+  - condition: Sample condition for who can apply
+    note: Sample note
+  - condition: Sample second condition
+category: certificates
+office: sample-civil-registry-office
+requirements:
+  - Sample requirement
+steps:
+  - title: Sample step one
+    detail: Sample sentence describing the step.
+    where: Sample window, City Hall
+  - title: Sample step two
+    detail: Sample sentence describing the step.
+processingTime: Sample processing time
+popular: true
+sources:
+  - title: City of Valenzuela official website
+    url: https://www.valenzuela.gov.ph/
+    accessed: 2026-10-02
+lastVerified: 2026-10-02
+status: needs-review

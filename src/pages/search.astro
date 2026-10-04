@@ -1,0 +1,289 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import { t } from '../i18n/t';
+
+const sections = [
+  { href: '/services/', label: t('nav.services') },
+  { href: '/hotlines/', label: t('nav.hotlines') },
+  { href: '/about/', label: t('nav.about') },
+];
+---
+
+<BaseLayout
+  title={t('search.title')}
+  description={t('search.description')}
+  noindex
+  showHeaderSearch={false}
+>
+  <div class="narrow sp">
+    <h1>{t('search.title')}</h1>
+    <form class="big" action="/search/" method="get" role="search">
+      <Icon name="search" size={20} />
+      <input
+        type="search"
+        name="q"
+        aria-label={t('search.label')}
+        placeholder={t('search.placeholder')}
+        enterkeyhint="search"
+      />
+      <button class="btn btn-primary" type="submit">
+        {t('search.button')}
+      </button>
+    </form>
+    <div
+      class="results"
+      data-search-page
+      data-count={t('search.count')}
+      data-count-one={t('search.countOne')}
+      data-none={t('search.none')}
+      data-all={t('search.all')}
+      aria-live="polite"
+    ></div>
+    <div class="fallback" data-search-fallback>
+      <p>{t('search.unavailable')}</p>
+      <ul>
+        {sections.map((s) => (
+          <li>
+            <a href={s.href}>{s.label}</a>
+          </li>
+        ))}
+      </ul>
+    </div>
+    <div class="fallback" data-search-empty hidden>
+      <p>{t('search.noneHint')}</p>
+      <ul>
+        {sections.map((s) => (
+          <li>
+            <a href={s.href}>{s.label}</a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  import { searchSite, type SearchHit } from '../lib/pagefind-client';
+
+  const box = document.querySelector<HTMLElement>('[data-search-page]');
+  const fallback = document.querySelector<HTMLElement>('[data-search-fallback]');
+  const empty = document.querySelector<HTMLElement>('[data-search-empty]');
+  const input = document.querySelector<HTMLInputElement>('.big input');
+  const query = new URLSearchParams(location.search).get('q')?.trim() ?? '';
+
+  if (box && fallback && empty && input) {
+    input.value = query;
+    if (!query) {
+      fallback.hidden = true;
+      input.focus();
+    } else {
+      void searchSite(query).then((result) => {
+        if (!result) return; // Search unavailable: keep the fallback links.
+        fallback.hidden = true;
+        if (result.hits.length === 0) {
+          const p = document.createElement('p');
+          p.className = 'cnt none';
+          p.textContent = (box.dataset['none'] ?? '').replace('{q}', query);
+          box.replaceChildren(p);
+          empty.hidden = false;
+          return;
+        }
+        render(result.hits);
+      });
+    }
+  }
+
+  function render(hits: SearchHit[], active = '') {
+    if (!box) return;
+    const counts = new Map<string, number>();
+    for (const hit of hits)
+      if (hit.section) counts.set(hit.section, (counts.get(hit.section) ?? 0) + 1);
+    const shown = active ? hits.filter((h) => h.section === active) : hits;
+
+    const tabs = document.createElement('nav');
+    tabs.className = 'tabs';
+    const tab = (label: string, value: string, count: number) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = value === active ? 'on' : '';
+      b.setAttribute('aria-pressed', String(value === active));
+      b.textContent = `${label} `;
+      const n = document.createElement('span');
+      n.textContent = String(count);
+      b.append(n);
+      b.addEventListener('click', () => render(hits, value));
+      return b;
+    };
+    tabs.append(tab(box.dataset['all'] ?? '', '', hits.length));
+    for (const [section, count] of counts) tabs.append(tab(section, section, count));
+
+    const cnt = document.createElement('p');
+    cnt.className = 'cnt';
+    const template = hits.length === 1 ? box.dataset['countOne'] : box.dataset['count'];
+    cnt.textContent = (template ?? '')
+      .replace('{count}', String(hits.length))
+      .replace('{q}', query);
+
+    const list = document.createElement('div');
+    for (const hit of shown) {
+      const a = document.createElement('a');
+      a.className = 'sr';
+      a.href = hit.url;
+      if (hit.section) {
+        const bc = document.createElement('span');
+        bc.className = 'bc';
+        bc.textContent = hit.section;
+        a.append(bc);
+      }
+      const h = document.createElement('h2');
+      h.textContent = hit.title;
+      const p = document.createElement('p');
+      p.innerHTML = hit.excerpt; // Pagefind output from our own index (<mark> only).
+      a.append(h, p);
+      list.append(a);
+    }
+    box.replaceChildren(...(counts.size > 1 ? [tabs] : []), cnt, list);
+  }
+</script>
+
+<style>
+  .sp {
+    padding-block: 40px var(--space-8);
+  }
+  h1 {
+    font-size: 2.75rem;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+  .big {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 56px;
+    margin-top: var(--space-5);
+    padding: 0 8px 0 18px;
+    border-radius: var(--radius-xl);
+    background: var(--color-field);
+    color: var(--color-muted);
+  }
+  .big:focus-within {
+    background: var(--color-bg);
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.05),
+      0 6px 20px rgb(0 0 0 / 0.1);
+  }
+  .big input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 1.125rem;
+    color: var(--color-text);
+    outline: none;
+  }
+  .big .btn {
+    min-height: 42px;
+  }
+  .results :global(.tabs) {
+    display: flex;
+    gap: 4px;
+    margin: var(--space-5) 0 var(--space-2);
+    overflow-x: auto;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .results :global(.tabs button) {
+    min-height: var(--tap-min);
+    padding: 0 14px;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 0.9375rem;
+    color: var(--color-muted);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .results :global(.tabs button.on) {
+    color: var(--color-text);
+    font-weight: 600;
+    box-shadow: inset 0 -2px 0 var(--color-text);
+  }
+  .results :global(.tabs span) {
+    font-size: var(--text-xs);
+    color: var(--color-muted);
+  }
+  .results :global(.cnt) {
+    margin: var(--space-3) 0 var(--space-1);
+    font-size: var(--text-sm);
+    color: var(--color-muted);
+  }
+  .results :global(.cnt.none) {
+    margin-top: var(--space-6);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+  .results :global(.sr) {
+    display: block;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  .results :global(.sr .bc) {
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+  }
+  .results :global(.sr h2) {
+    margin: 2px 0 4px;
+    font-size: 1.3125rem;
+    font-weight: 600;
+    color: var(--color-link);
+  }
+  .results :global(.sr:hover h2) {
+    text-decoration: underline;
+  }
+  .results :global(.sr p) {
+    color: var(--color-text-2);
+  }
+  .results :global(mark) {
+    background: #fff3b0;
+    color: inherit;
+    border-radius: 3px;
+  }
+  .fallback {
+    margin-top: var(--space-6);
+    padding: 28px;
+    border-radius: var(--radius-xl);
+    background: var(--color-surface);
+    text-align: center;
+  }
+  .fallback[hidden] {
+    display: none;
+  }
+  .fallback ul {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px 22px;
+    margin-top: var(--space-2);
+    padding: 0;
+    list-style: none;
+  }
+  .fallback a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap-min);
+    font-weight: 600;
+  }
+  @media (max-width: 47.99rem) {
+    h1 {
+      font-size: 1.875rem;
+    }
+    .big .btn {
+      display: none;
+    }
+  }
+</style>

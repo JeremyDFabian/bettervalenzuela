@@ -1,0 +1,28 @@
+name: Report an error
+description: Something on the site is wrong, missing, or out of date.
+title: 'Error on: '
+labels: ['content-error']
+body:
+  - type: input
+    id: page-url
+    attributes:
+      label: Page
+      description: The page with the problem. Filled in automatically when you use the link on the page.
+      placeholder: https://bettervalenzuela.pages.dev/services/...
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is wrong?
+    validations:
+      required: true
+  - type: textarea
+    id: correction
+    attributes:
+      label: What should it say?
+  - type: input
+    id: source
+    attributes:
+      label: Source
+      description: A link to an official source that confirms the correction, if you have one.

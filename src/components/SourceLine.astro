@@ -1,0 +1,56 @@
+---
+import { t } from '../i18n/t';
+import { formatDate } from '../lib/format';
+import type { Source } from '../lib/types';
+
+interface Props {
+  sources: Source[];
+  lastVerified?: Date | undefined;
+  issueUrl: string;
+}
+
+const { sources, lastVerified, issueUrl } = Astro.props;
+---
+
+<p class="source-line" data-pagefind-ignore>
+  {sources.length > 0 && (
+    <>
+      {t('meta.source')}{' '}
+      {sources.map((source, index) => (
+        <>
+          {index > 0 && ', '}
+          <a href={source.url} rel="external">
+            {source.title}
+          </a>
+        </>
+      ))}
+      {' · '}
+    </>
+  )}
+  {lastVerified && <>{t('meta.verified', { date: formatDate(lastVerified) })} · </>}
+  <a href={issueUrl} rel="external">
+    {t('meta.reportError')}
+  </a>
+</p>
+
+<style>
+  .source-line {
+    margin-top: var(--space-7);
+    padding-top: 14px;
+    border-top: 1px solid var(--color-border);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: var(--color-muted);
+  }
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    color: var(--color-text-2);
+    text-decoration: underline;
+    text-decoration-color: var(--color-border-strong);
+  }
+  a:hover {
+    color: var(--color-link);
+  }
+</style>

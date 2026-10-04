@@ -1,0 +1,118 @@
+---
+import InfoLayout from '../layouts/InfoLayout.astro';
+import Icon from '../components/Icon.astro';
+import { t, type MessageKey } from '../i18n/t';
+import { site } from '../site.config';
+import type { IconName } from '../lib/icons';
+
+const items: [IconName, MessageKey][] = [
+  ['keyboard', 'a11y.d1'],
+  ['sound', 'a11y.d2'],
+  ['zoom', 'a11y.d3'],
+  ['contrast', 'a11y.d4'],
+  ['pause', 'a11y.d5'],
+  ['globe', 'a11y.d6'],
+];
+---
+
+<InfoLayout
+  title={t('a11y.title')}
+  description={t('a11y.description')}
+  lede={t('a11y.description')}
+>
+  <p class="intro">{t('a11y.intro')}</p>
+  <h2>{t('a11y.doTitle')}</h2>
+  <div class="six">
+    {items.map(([icon, key]) => (
+      <div class="card">
+        <span class="i">
+          <Icon name={icon} size={18} />
+        </span>
+        <b>{t(key)}</b>
+        <span class="d">{t(`${key}.d` as MessageKey)}</span>
+      </div>
+    ))}
+  </div>
+  <h2>{t('a11y.limitsTitle')}</h2>
+  <p>{t('a11y.limits')}</p>
+  <div class="rep">
+    <div>
+      <b>{t('a11y.ctaTitle')}</b>
+      <p>{t('a11y.ctaText')}</p>
+    </div>
+    <a class="btn" href={`${site.repoUrl}/issues/new/choose`} rel="external">
+      {t('a11y.ctaButton')}
+    </a>
+  </div>
+</InfoLayout>
+
+<style>
+  .intro {
+    font-size: 1.0625rem !important;
+  }
+  .six {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .six .card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+  .i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin-bottom: 10px;
+    border-radius: var(--radius-md);
+    background: var(--color-band-soft);
+    color: var(--color-primary);
+  }
+  .six b {
+    display: block;
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
+  .six .d {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--color-muted);
+  }
+  .rep {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: var(--space-7);
+    padding: 24px;
+    border-radius: var(--radius-xl);
+    background: var(--color-primary);
+    color: #fff;
+  }
+  .rep b {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+  .rep p {
+    margin: 4px 0 0 !important;
+    color: #fff;
+  }
+  .rep .btn {
+    background: #fff;
+    color: var(--color-primary);
+  }
+  @media (max-width: 47.99rem) {
+    .six {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .rep .btn {
+      width: 100%;
+    }
+  }
+</style>
