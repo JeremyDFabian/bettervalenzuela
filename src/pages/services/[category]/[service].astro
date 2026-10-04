@@ -13,6 +13,7 @@ import { publishedOrNull } from '../../../lib/drafts';
 import { summarizeFees } from '../../../lib/fees';
 import { formatDate, formatPeso } from '../../../lib/format';
 import { buildIssueUrl } from '../../../lib/issues';
+import { requireEntry } from '../../../lib/references';
 import { categoryHref } from '../../../lib/routes';
 import type { Fee } from '../../../lib/schemas';
 
@@ -30,9 +31,16 @@ interface Props {
 
 const { service } = Astro.props;
 const data = service.data;
-const category = await getEntry(data.category);
+const from = `services/${service.id}`;
+const category = requireEntry(await getEntry(data.category), {
+  from,
+  field: 'category',
+  id: data.category.id,
+});
 // A verified service must not leak an unverified office into production.
-const office = publishedOrNull(await getEntry(data.office));
+const office = publishedOrNull(
+  requireEntry(await getEntry(data.office), { from, field: 'office', id: data.office.id }),
+);
 
 const pageUrl = new URL(Astro.url.pathname, Astro.site ?? site.url).toString();
 const issueUrl = buildIssueUrl(site.repoUrl, { title: data.title, url: pageUrl });
