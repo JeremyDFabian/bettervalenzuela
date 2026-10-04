@@ -2,7 +2,7 @@
 import type { CollectionEntry } from 'astro:content';
 import ServiceCard from './ServiceCard.astro';
 import { t } from '../i18n/t';
-import { totalFee } from '../lib/fees';
+import { summarizeFees, type FeeSummary } from '../lib/fees';
 import { formatPeso } from '../lib/format';
 import { serviceHref } from '../lib/routes';
 
@@ -11,19 +11,34 @@ interface Props {
 }
 
 const { services } = Astro.props;
+
+function feeLabel(summary: FeeSummary): { text: string; tone?: 'free' | 'varies' } {
+  switch (summary.kind) {
+    case 'none':
+      return { text: t('services.feeNone') };
+    case 'fixed':
+      return summary.total === 0
+        ? { text: t('services.free'), tone: 'free' }
+        : { text: formatPeso(summary.total) };
+    case 'from':
+      return { text: t('services.feeFrom', { amount: formatPeso(summary.min) }), tone: 'varies' };
+    case 'varies':
+      return { text: t('services.feeVaries'), tone: 'varies' };
+  }
+}
 ---
 
 <ul class="grid">
   {services.map((service) => {
-    const total = totalFee(service.data.fees);
+    const fee = feeLabel(summarizeFees(service.data.fees));
     return (
       <li>
         <ServiceCard
           href={serviceHref(service.data.category.id, service.id)}
           title={service.data.title}
           summary={service.data.summary}
-          fee={total === 0 ? t('services.free') : formatPeso(total)}
-          free={total === 0}
+          fee={fee.text}
+          tone={fee.tone}
           processingTime={service.data.processingTime}
         />
       </li>

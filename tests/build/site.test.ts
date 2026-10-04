@@ -134,3 +134,35 @@ describe('services listing', () => {
     expect(html).toContain('href="/services/business/sample-business-permit/"');
   });
 });
+
+describe('service detail page', () => {
+  const page = 'services/business/sample-business-permit/index.html';
+
+  test('is absent in production while the entry needs review', () => {
+    expect(existsSync(join(PROD, page))).toBe(false);
+  });
+
+  test('renders in drafts with badge, noindex, fees, office, and structured data', () => {
+    const html = read(DRAFTS, page);
+    expect(html).toContain('data-review-badge');
+    expect(html).toMatch(/<meta name="robots" content="noindex"\s*\/?>/);
+    expect(html).toContain('₱500.00');
+    expect(html).toContain('Free'); // the 0-peso fee
+    expect(html).toContain('Business Permits and Licensing Office (sample)');
+    expect(html).toContain('href="tel:+63283521000"');
+    expect(html).toContain('"@type":"GovernmentService"');
+    expect(html).toContain('Last verified');
+    expect(html).toContain('Oct 2, 2026');
+  });
+
+  test('lists each requirement as a checkbox that works without JavaScript', () => {
+    const html = read(DRAFTS, page);
+    expect(html.match(/type="checkbox"/g)).toHaveLength(2);
+  });
+
+  test('a service with no fees says so', () => {
+    expect(read(DRAFTS, 'services/certificates/sample-birth-certificate/index.html')).toContain(
+      'No fees listed.',
+    );
+  });
+});

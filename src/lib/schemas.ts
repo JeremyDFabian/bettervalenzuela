@@ -1,4 +1,5 @@
 import { z } from 'astro/zod';
+import { weekdays } from './hours';
 import { iconNames } from './icons';
 
 const ONE_DAY_MS = 86_400_000;
@@ -28,24 +29,50 @@ export const serviceCategorySchema = z.object({
   order: z.number().int().nonnegative(),
 });
 
+const clockTime = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use 24-hour HH:MM time');
+
+/** Opening hours the "Open now" status is computed from (Asia/Manila time). */
+export const scheduleSchema = z
+  .object({
+    days: z.array(z.enum(weekdays)).min(1),
+    open: clockTime,
+    close: clockTime,
+  })
+  .refine((slot) => slot.close > slot.open, 'Closing time must be after opening time');
+
 export const officeSchema = z.object({
   name: text,
   head: text.optional(),
   location: text,
   phones: z.array(text).default([]),
   email: z.email().optional(),
+  /** Hours as people read them; shown when the status script cannot run. */
   hours: text,
+  schedule: z.array(scheduleSchema).default([]),
   ...verifiableFields,
 });
+
+const peso = z.number().nonnegative();
+
+/** One fee line: a fixed amount, a range, or an amount set at assessment. */
+export const feeSchema = z.union([
+  z.object({ item: text, amount: peso }).strict(),
+  z
+    .object({ item: text, min: peso, max: peso })
+    .strict()
+    .refine((fee) => fee.min <= fee.max, 'min must not exceed max'),
+  z.object({ item: text, varies: z.literal(true), basis: text }).strict(),
+]);
+export type Fee = z.infer<typeof feeSchema>;
 
 /** Service fields except the references, which content.config.ts adds with reference(). */
 export const serviceFields = {
   title: text,
   summary: text,
-  whoCanApply: text,
+  whoCanApply: z.array(z.object({ condition: text, note: text.optional() })).min(1),
   requirements: z.array(text).min(1),
-  steps: z.array(text).min(1),
-  fees: z.array(z.object({ item: text, amount: z.number().nonnegative() })).default([]),
+  steps: z.array(z.object({ title: text, detail: text, where: text.optional() })).min(1),
+  fees: z.array(feeSchema).default([]),
   processingTime: text,
   officialLink: httpUrl.optional(),
   popular: z.boolean().default(false),

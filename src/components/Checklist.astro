@@ -1,0 +1,327 @@
+---
+import { t } from '../i18n/t';
+
+/**
+ * Approved requirements checklist (7c): real checkboxes, so it works without JavaScript.
+ * The script adds the counter, the "All documents ready" badge, a small confetti burst,
+ * and remembers ticks in this browser only.
+ */
+interface Props {
+  heading: string;
+  items: string[];
+  /** Unique per page, for remembering ticks. */
+  storageKey: string;
+}
+
+const { heading, items, storageKey } = Astro.props;
+---
+
+<section
+  class="checklist"
+  data-checklist={storageKey}
+  data-count-template={t('service.checklistCount')}
+>
+  <div class="head">
+    <h2 id={`${storageKey}-h`}>{heading}</h2>
+    <span class="count" data-count hidden></span>
+    <span class="ready" data-ready aria-live="polite">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5 12.5l4.5 4.5L19 7.5"></path>
+      </svg>
+      {t('service.allReady')}
+    </span>
+  </div>
+  <ul aria-labelledby={`${storageKey}-h`}>
+    {items.map((item) => (
+      <li>
+        <label>
+          <input type="checkbox" />
+          <span class="box" aria-hidden="true">
+            <span class="fill" />
+            <svg viewBox="0 0 24 24">
+              <path d="M5 12.5l4.5 4.5L19 7.5" />
+            </svg>
+          </span>
+          <span class="text">{item}</span>
+        </label>
+      </li>
+    ))}
+  </ul>
+  <p class="note" data-note hidden>
+    {t('service.checklistNote')}
+  </p>
+</section>
+
+<script>
+  const CONFETTI = ['#0071e3', '#30d158', '#64a8f0', '#7ee08f'];
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  function burst(box: HTMLElement) {
+    if (reduceMotion.matches) return;
+    for (let i = 0; i < 8; i++) {
+      const piece = document.createElement('span');
+      const angle = (Math.PI * 2 * i) / 8 + Math.random() * 0.4;
+      const distance = 14 + Math.random() * 8;
+      piece.className = 'confetti';
+      piece.style.background = CONFETTI[i % CONFETTI.length]!;
+      piece.style.setProperty('--x', `${Math.cos(angle) * distance}px`);
+      piece.style.setProperty('--y', `${Math.sin(angle) * distance}px`);
+      piece.addEventListener('animationend', () => piece.remove());
+      box.append(piece);
+    }
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-checklist]')) {
+    const key = `checklist:${root.dataset.checklist}`;
+    const boxes = [...root.querySelectorAll<HTMLInputElement>('input[type="checkbox"]')];
+    const count = root.querySelector<HTMLElement>('[data-count]');
+    const ready = root.querySelector<HTMLElement>('[data-ready]');
+    const template = root.dataset.countTemplate ?? '';
+
+    let saved: boolean[] = [];
+    try {
+      saved = JSON.parse(localStorage.getItem(key) ?? '[]') as boolean[];
+    } catch {
+      saved = [];
+    }
+    boxes.forEach((box, i) => (box.checked = saved[i] === true));
+
+    const update = () => {
+      const done = boxes.filter((box) => box.checked).length;
+      if (count) {
+        count.textContent = template
+          .replace('{done}', String(done))
+          .replace('{total}', String(boxes.length));
+        count.hidden = false;
+      }
+      ready?.classList.toggle('on', done === boxes.length);
+      try {
+        localStorage.setItem(key, JSON.stringify(boxes.map((box) => box.checked)));
+      } catch {
+        // Storage blocked: ticks still work for this visit.
+      }
+    };
+
+    for (const box of boxes) {
+      box.addEventListener('change', () => {
+        if (box.checked) {
+          const visual = box.nextElementSibling as HTMLElement;
+          visual.classList.remove('pop');
+          void visual.offsetWidth; // restart the pop animation
+          visual.classList.add('pop');
+          burst(visual);
+        }
+        update();
+      });
+    }
+    root.querySelector<HTMLElement>('[data-note]')?.removeAttribute('hidden');
+    update();
+  }
+</script>
+
+<style>
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .count {
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .ready {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px 3px 8px;
+    border-radius: 999px;
+    background: #e3f6e8;
+    color: #1b7a35;
+    font-size: 0.75rem;
+    font-weight: 600;
+    opacity: 0;
+    transform: scale(0.8) translateY(4px);
+    transition:
+      opacity 0.2s,
+      transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .ready:not(.on) {
+    visibility: hidden;
+  }
+  .ready.on {
+    opacity: 1;
+    transform: none;
+  }
+  .ready svg {
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+  }
+  li + li {
+    border-top: 1px solid var(--color-border);
+  }
+  label {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    min-height: 48px;
+    padding: 12px 14px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+  .box {
+    position: relative;
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-top: 1px;
+    border: 1.5px solid #c7c7cc;
+    border-radius: 6px;
+    background: var(--color-bg);
+    transition: border-color 0.2s;
+  }
+  label:hover .box {
+    border-color: #86868b;
+  }
+  input:focus-visible + .box {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+  .fill {
+    position: absolute;
+    inset: -1.5px;
+    border-radius: 6px;
+    background: var(--color-primary);
+    transform: scale(0);
+    transition: transform 0.15s ease-out;
+  }
+  .box svg {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: 2px;
+    fill: none;
+    stroke: #fff;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .box path {
+    stroke-dasharray: 24;
+    stroke-dashoffset: 24;
+    opacity: 0;
+    transition:
+      stroke-dashoffset 0.1s,
+      opacity 0.1s;
+  }
+  .text {
+    position: relative;
+    width: fit-content;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+    transition: color 0.15s;
+  }
+  .text::after {
+    content: '';
+    position: absolute;
+    top: calc(0.725em - 0.75px);
+    right: 0;
+    left: 0;
+    height: 1.5px;
+    background: #aeaeb2;
+    transform: scaleX(0);
+    transform-origin: 100% 50%;
+    transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  input:checked + .box {
+    border-color: var(--color-primary);
+  }
+  input:checked + .box .fill {
+    transform: scale(1);
+    transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  input:checked + .box path {
+    stroke-dashoffset: 0;
+    opacity: 1;
+    transition:
+      stroke-dashoffset 0.2s ease-out 0.06s,
+      opacity 0.01s 0.06s;
+  }
+  input:checked ~ .text {
+    color: #86868b;
+  }
+  input:checked ~ .text::after {
+    transform: scaleX(1);
+    transform-origin: 0 50%;
+    transition-duration: 0.25s;
+  }
+  .box.pop {
+    animation: pop 0.4s ease-out;
+  }
+  .box :global(.confetti) {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    margin: -2px 0 0 -2px;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: fly 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  }
+  .note {
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: var(--color-muted);
+  }
+  @keyframes pop {
+    30% {
+      transform: scale(0.9);
+    }
+    60% {
+      transform: scale(1.12);
+    }
+  }
+  @keyframes fly {
+    to {
+      opacity: 0;
+      transform: translate(var(--x), var(--y)) scale(0.6);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .box,
+    .fill,
+    .box path,
+    .text,
+    .text::after,
+    .ready {
+      transition: none !important;
+    }
+    .box.pop {
+      animation: none;
+    }
+  }
+</style>

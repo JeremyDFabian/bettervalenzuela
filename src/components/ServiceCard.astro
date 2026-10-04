@@ -8,18 +8,18 @@ interface Props {
   title: string;
   summary: string;
   fee: string;
-  free: boolean;
+  tone?: 'free' | 'varies' | undefined;
   processingTime: string;
 }
 
-const { href, title, summary, fee, free, processingTime } = Astro.props;
+const { href, title, summary, fee, tone, processingTime } = Astro.props;
 ---
 
 <a class="card" {href}>
   <span class="name">{title}</span>
   <span class="summary">{summary}</span>
   <span class="meta">
-    <span class:list={['fact', { free }]}>
+    <span class:list={['fact', tone]}>
       <Icon name="wallet" size={13} />
       <span class="visually-hidden">{t('services.feeLabel')}</span>
       {fee}
@@ -87,6 +87,9 @@ const { href, title, summary, fee, free, processingTime } = Astro.props;
   }
   .free {
     color: var(--color-ok);
+  }
+  .varies {
+    color: var(--color-link);
   }
   @media (prefers-reduced-motion: reduce) {
     .card {
