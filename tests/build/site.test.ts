@@ -227,3 +227,28 @@ describe('search index', () => {
     expect(read(PROD, 'index.html')).not.toContain('data-pagefind-body');
   });
 });
+
+describe('machine-readable files', () => {
+  test('llms.txt lists sections and only published services', () => {
+    const prod = read(PROD, 'llms.txt');
+    expect(prod).toContain('# BetterValenzuela');
+    expect(prod).toContain('/services/');
+    expect(prod).not.toContain('(sample)');
+    expect(read(DRAFTS, 'llms.txt')).toContain('New business permit (sample)');
+  });
+
+  test('robots.txt points to the sitemap', () => {
+    expect(read(PROD, 'robots.txt')).toMatch(/Sitemap: https:\/\/.+\/sitemap-index\.xml/);
+  });
+
+  test('security headers ship with the build', () => {
+    const headers = read(PROD, '_headers');
+    expect(headers).toContain("script-src 'self' 'wasm-unsafe-eval'");
+    expect(headers).toContain('X-Content-Type-Options: nosniff');
+  });
+
+  test('the error form has the field the "Report an error" links pre-fill', () => {
+    const form = readFileSync('.github/ISSUE_TEMPLATE/report-error.yml', 'utf8');
+    expect(form).toContain('id: page-url');
+  });
+});
