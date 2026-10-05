@@ -95,8 +95,8 @@ describe.each([
     }
   });
 
-  test('never links to sections that are not built yet', () => {
-    const unbuilt = [
+  test('links to a section only when that section is built', () => {
+    const sections = [
       '/government/',
       '/barangays/',
       '/ordinances/',
@@ -106,10 +106,12 @@ describe.each([
       '/history/',
       '/quiz/',
     ];
-    for (const file of htmlFiles(dir)) {
-      const html = readFileSync(file, 'utf8');
-      for (const path of unbuilt) {
-        expect(html, `${file} links to ${path}`).not.toContain(`href="${path}"`);
+    for (const path of sections) {
+      if (existsSync(join(dir, path, 'index.html'))) continue;
+      for (const file of htmlFiles(dir)) {
+        expect(readFileSync(file, 'utf8'), `${file} links to ${path}`).not.toContain(
+          `href="${path}"`,
+        );
       }
     }
   });
@@ -221,6 +223,45 @@ describe('home page', () => {
   test('preview builds show popular services as cards in the hero', () => {
     expect(hero(DRAFTS)).toContain('href="/services/business/sample-business-permit/"');
   });
+
+  const block = (dir: string, name: string): string | null => {
+    const html = read(dir, 'index.html');
+    const start = html.indexOf(`data-home-block="${name}"`);
+    return start === -1 ? null : html.slice(start, html.indexOf('</section>', start));
+  };
+
+  test('production hides leadership and history while they need review, but shows contact', () => {
+    expect(block(PROD, 'leadership')).toBeNull();
+    expect(block(PROD, 'history')).toBeNull();
+    const contact = block(PROD, 'contact');
+    expect(contact).toContain('href="https://www.valenzuela.gov.ph/"');
+    expect(contact).toMatch(/href="https:\/\/(www\.)?facebook\.com\//);
+    expect(contact).toContain('href="tel:');
+    expect(contact).not.toMatch(/<iframe/);
+  });
+
+  test('drafts show the mayor and vice mayor linking to /government/, and three featured events linking to /history/', () => {
+    const leaders = block(DRAFTS, 'leadership') ?? '';
+    expect(leaders).toContain('City Mayor');
+    expect(leaders).toContain('Vice Mayor');
+    expect(leaders).toContain('href="/government/"');
+    const history = block(DRAFTS, 'history') ?? '';
+    expect(history.match(/<time/g)).toHaveLength(3);
+    expect(history).toContain('href="/history/"');
+  });
+
+  test('blocks follow the hero in the approved order: history, leadership, contact', () => {
+    const html = read(DRAFTS, 'index.html');
+    const at = (n: string) => html.indexOf(`data-home-block="${n}"`);
+    expect(html.indexOf('data-home-hero')).toBeLessThan(at('history'));
+    expect(at('history')).toBeLessThan(at('leadership'));
+    expect(at('leadership')).toBeLessThan(at('contact'));
+  });
+
+  test('the official card color hook is set on the home page only, not on /government/', () => {
+    expect(read(DRAFTS, 'index.html')).toContain('--official-card-bg:');
+    expect(read(DRAFTS, 'government/index.html')).not.toContain('--official-card-bg:');
+  });
 });
 
 describe('search index', () => {
@@ -241,6 +282,18 @@ describe('machine-readable files', () => {
     expect(prod).toContain('/services/');
     expect(prod).not.toContain('(sample)');
     expect(read(DRAFTS, 'llms.txt')).toContain('New business permit (sample)');
+  });
+
+  test('llms.txt links the new sections, and lists barangays only when published', () => {
+    const prod = read(PROD, 'llms.txt');
+    expect(prod).toContain('/government/');
+    expect(prod).toContain('/barangays/');
+    expect(prod).not.toContain('/history/');
+    expect(prod).not.toMatch(/\/barangays\/[a-z0-9-]+\//);
+    const drafts = read(DRAFTS, 'llms.txt');
+    expect(drafts).toContain('/history/');
+    expect(drafts).toContain('## Barangays');
+    expect(drafts).toMatch(/\/barangays\/malinta\//);
   });
 
   test('robots.txt points to the sitemap', () => {
@@ -268,5 +321,159 @@ describe('main menu accessibility', () => {
       expect(button).toContain('aria-expanded="false"');
       expect(button).toMatch(/aria-controls="[^"]+"/);
     }
+  });
+});
+
+describe('government page', () => {
+  test('production shows the being-verified notice and no unverified names', () => {
+    const html = read(PROD, 'government/index.html');
+    expect(html.replaceAll('&#39;', "'")).toContain("Officials' information is being verified.");
+    expect(html).not.toContain('data-review-badge');
+  });
+
+  test('drafts list the mayor first, both districts, and ex-officio members, with badges and noindex', () => {
+    const html = read(DRAFTS, 'government/index.html');
+    expect(html).toContain('City Mayor');
+    expect(html).toContain('District 1');
+    expect(html).toContain('District 2');
+    expect(html).toContain('Ex-officio members');
+    expect(html).toContain('data-review-badge');
+    expect(html).toMatch(/<meta name="robots" content="noindex"\s*\/?>/);
+    expect(html.indexOf('City Mayor')).toBeLessThan(html.indexOf('Councilor, District 1'));
+  });
+
+  test('the menu links to it in both builds', () => {
+    for (const dir of [PROD, DRAFTS])
+      expect(read(dir, 'about/index.html')).toContain('href="/government/"');
+  });
+});
+
+describe('barangays', () => {
+  const files = (dir: string) =>
+    readdirSync(join(dir, 'barangays'), { withFileTypes: true }).filter((d) => d.isDirectory());
+
+  test('production shows the being-verified notice and builds no draft barangay pages', () => {
+    expect(read(PROD, 'barangays/index.html')).toContain('Barangay information is being verified.');
+    expect(files(PROD)).toHaveLength(0);
+  });
+
+  test('drafts build one page per barangay, grouped by district on the index', () => {
+    expect(files(DRAFTS)).toHaveLength(33);
+    const html = read(DRAFTS, 'barangays/index.html');
+    expect(html).toContain('District 1');
+    expect(html).toContain('District 2');
+    expect(html.match(/href="\/barangays\/[a-z0-9-]+\/"/g)?.length).toBeGreaterThanOrEqual(33);
+  });
+
+  test('a barangay page has Place JSON-LD, the OSM link, a badge, noindex and the no-address note', () => {
+    const html = read(DRAFTS, 'barangays/malinta/index.html');
+    const ld = html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)?.[1];
+    expect(JSON.parse(ld ?? '{}')['@type']).toBe('Place');
+    expect(html).toContain('href="https://www.openstreetmap.org/?mlat=');
+    expect(html).toContain('data-review-badge');
+    expect(html).toContain('Street address not yet listed');
+    expect(html).toMatch(/<meta name="robots" content="noindex"\s*\/?>/);
+  });
+
+  test('pages without coordinates have no location section; pages without phones have no call button', () => {
+    for (const dirent of files(DRAFTS)) {
+      const html = read(DRAFTS, `barangays/${dirent.name}/index.html`);
+      const ld = JSON.parse(
+        html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)?.[1] ?? '{}',
+      );
+      expect(html.includes('id="location"'), dirent.name).toBe('geo' in ld);
+      // Only the hall section: the site-wide hotline strip has its own tel: links.
+      const start = html.indexOf('id="hall"');
+      const hall = html.slice(start, html.indexOf('</section>', start));
+      expect(start, dirent.name).toBeGreaterThan(-1);
+      if (!hall.includes('data-phone-actions')) expect(hall, dirent.name).not.toContain('tel:');
+    }
+  });
+});
+
+describe('map island', () => {
+  test('ships the fallback link and a hidden, labelled map container on barangay pages', () => {
+    const html = read(DRAFTS, 'barangays/malinta/index.html');
+    expect(html).toContain('href="https://www.openstreetmap.org/?mlat=');
+    expect(html).toMatch(/<div[^>]*data-map[^>]*hidden/);
+    expect(html).toMatch(/data-map[^>]*aria-label="Map showing [^"]+"/);
+  });
+
+  test('the map script loads only on barangay detail pages', () => {
+    const srcs = (path: string) =>
+      new Set(
+        [...read(DRAFTS, path).matchAll(/<script[^>]*src="([^"]+)"/g)].map((m) => m[1] ?? ''),
+      );
+    const others = [
+      'index.html',
+      'barangays/index.html',
+      'government/index.html',
+      'hotlines/index.html',
+    ];
+    // Scripts on the barangay page that no non-map page loads (PhoneActions' script is shared).
+    const shared = new Set(others.flatMap((page) => [...srcs(page)]));
+    const mapOnly = [...srcs('barangays/malinta/index.html')].filter((s) => !shared.has(s));
+    expect(mapOnly.length).toBeGreaterThan(0);
+    expect(
+      [...srcs('barangays/malinta/index.html')].filter((s) => /Map\.astro/.test(s)),
+    ).toHaveLength(1);
+    for (const page of others) {
+      const html = read(DRAFTS, page);
+      expect(html, page).not.toContain('data-map');
+      expect(html, page).not.toContain('leaflet');
+      expect(
+        [...srcs(page)].filter((s) => /Map\.astro/.test(s)),
+        page,
+      ).toEqual([]);
+      for (const src of mapOnly) expect(srcs(page).has(src), `${page} loads ${src}`).toBe(false);
+    }
+  });
+
+  test('the Leaflet stylesheet is not render-blocking on barangay pages', () => {
+    const html = read(DRAFTS, 'barangays/malinta/index.html');
+    expect(html).not.toMatch(/<link[^>]*rel="stylesheet"[^>]*href="\/_astro\/leaflet/);
+    expect(html).not.toMatch(/<link[^>]*href="\/_astro\/leaflet[^>]*rel="stylesheet"/);
+  });
+
+  test('the CSP allows OpenStreetMap tiles and nothing broader', () => {
+    const headers = read(PROD, '_headers');
+    expect(headers).toMatch(/img-src 'self' data: https:\/\/tile\.openstreetmap\.org;/);
+    expect(headers).toContain("script-src 'self' 'wasm-unsafe-eval'");
+  });
+});
+
+describe('barangay meta descriptions', () => {
+  test('the page description names the barangay and district; the index claims no addresses', () => {
+    const html = read(DRAFTS, 'barangays/malinta/index.html');
+    expect(html).toMatch(/<meta name="description" content="[^"]*Barangay Malinta, District 1/);
+    expect(read(DRAFTS, 'barangays/index.html')).not.toContain('addresses');
+  });
+});
+
+describe('home page drafts rule', () => {
+  test('drafts: noindex, and the history block shows the review badge', () => {
+    const html = read(DRAFTS, 'index.html');
+    expect(html).toContain('<meta name="robots" content="noindex"');
+    const block = html.split('data-home-block="history"')[1]?.split('</section>')[0] ?? '';
+    expect(block).toContain('data-review-badge');
+  });
+  test('production: no noindex', () => {
+    expect(read(PROD, 'index.html')).not.toContain('content="noindex"');
+  });
+});
+
+describe('history', () => {
+  test('production: no page and no menu link while history needs review', () => {
+    expect(existsSync(join(PROD, 'history/index.html'))).toBe(false);
+    expect(read(PROD, 'about/index.html')).not.toContain('href="/history/"');
+  });
+
+  test('drafts: a timeline in year order with per-event sources, and a menu link', () => {
+    const html = read(DRAFTS, 'history/index.html');
+    const years = [...html.matchAll(/<time[^>]*datetime="(\d{4})"/g)].map((m) => Number(m[1]));
+    expect(years.length).toBeGreaterThan(1);
+    expect(years).toEqual([...years].sort((a, b) => a - b));
+    expect(html).toMatch(/<ol[^>]*class="timeline/);
+    expect(read(DRAFTS, 'about/index.html')).toContain('href="/history/"');
   });
 });

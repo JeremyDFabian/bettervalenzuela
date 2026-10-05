@@ -1,0 +1,90 @@
+---
+import { t } from '../i18n/t';
+import type { TimelineEvent } from '../lib/history';
+
+interface Props {
+  events: TimelineEvent[];
+}
+
+const { events } = Astro.props;
+---
+
+<ol class="timeline">
+  {events.map((event) => (
+    <li>
+      <time datetime={String(event.year)}>{event.year}</time>
+      <h2>{event.title}</h2>
+      <p>{event.description}</p>
+      <p class="src">
+        {t('history.sources')}:{' '}
+        {event.sources.map((s, i) => (
+          <>
+            {i > 0 && ', '}
+            <a href={s.url} rel="external">
+              {s.title}
+            </a>
+          </>
+        ))}
+      </p>
+    </li>
+  ))}
+</ol>
+
+<style>
+  .timeline {
+    margin: 0;
+    padding: 0 0 0 28px;
+    border-left: 2px solid var(--color-border);
+    list-style: none;
+  }
+  li {
+    position: relative;
+    padding-bottom: 28px;
+  }
+  li:last-child {
+    padding-bottom: 0;
+  }
+  li::before {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: -36px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-bg);
+  }
+  time {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-primary);
+  }
+  .timeline h2 {
+    margin: 2px 0 4px;
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .timeline p {
+    margin: 0;
+    max-width: 62ch;
+    font-size: 15.5px;
+    line-height: 1.55;
+    color: var(--color-text);
+  }
+  .timeline p.src {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--color-muted);
+  }
+  .src a {
+    color: var(--color-link);
+  }
+  @media (min-width: 40rem) {
+    .timeline h2 {
+      font-size: 21px;
+    }
+  }
+</style>

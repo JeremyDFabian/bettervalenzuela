@@ -7,6 +7,14 @@ export const site = {
   /** Canonical URL. Change this one value when the domain changes (spec §10). */
   url: 'https://bettervalenzuela.pages.dev',
   officialWebsite: 'https://www.valenzuela.gov.ph/',
+  /** City hall, for the home contact block. Sources: https://www.valenzuela.gov.ph/contact-us (address, phone), https://www.openstreetmap.org/node/8671827641 (coordinates). */
+  cityHall: {
+    address: 'City Hall, MacArthur Highway, Karuhatan, Valenzuela City',
+    phone: '(02) 8352-1000',
+    coordinates: { lat: 14.6929096, lng: 120.9681428 },
+  },
+  /** Official Facebook page of the City Government, as linked from https://www.valenzuela.gov.ph/. */
+  officialFacebook: 'https://www.facebook.com/ValenzuelaCityGov',
   repoUrl: 'https://github.com/JeremyDFabian/bettervalenzuela',
   /** BetterValenzuela is part of BetterGov.ph (maintainer, 2026-10-03). */
   parent: {

@@ -1,0 +1,20 @@
+name: Maysan
+district: 2
+phones:
+  - '8-294-4712'
+  - '8-361-8968'
+coordinates:
+  lat: 14.6977439
+  lng: 120.9792343
+status: needs-review
+lastVerified: 2026-10-04
+sources:
+  - title: 'Valenzuela City Government - Barangays (name and legislative district)'
+    url: https://valenzuela.gov.ph/barangays/
+    accessed: 2026-10-04
+  - title: 'Valenzuela City Government - Directory: 3S Centers and Barangays (phone numbers)'
+    url: https://valenzuela.gov.ph/3s-centers-barangays/
+    accessed: 2026-10-04
+  - title: 'OpenStreetMap way 292038479 (barangay hall location)'
+    url: https://www.openstreetmap.org/way/292038479
+    accessed: 2026-10-04

@@ -1,0 +1,19 @@
+name: Wawang Pulo
+district: 1
+phones:
+  - '8-442-5681'
+coordinates:
+  lat: 14.7335988
+  lng: 120.927726
+status: needs-review
+lastVerified: 2026-10-04
+sources:
+  - title: 'Valenzuela City Government - Barangays (name and legislative district)'
+    url: https://valenzuela.gov.ph/barangays/
+    accessed: 2026-10-04
+  - title: 'Valenzuela City Government - Directory: 3S Centers and Barangays (phone numbers)'
+    url: https://valenzuela.gov.ph/3s-centers-barangays/
+    accessed: 2026-10-04
+  - title: 'OpenStreetMap node 11519249223 (barangay hall location)'
+    url: https://www.openstreetmap.org/node/11519249223
+    accessed: 2026-10-04

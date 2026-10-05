@@ -1,0 +1,22 @@
+# Review note: in the city directory, these phone numbers sit next to angat.malinta@gmail.com,
+# a Malinta-style email. Confirm the numbers belong to Malanday before verifying.
+name: Malanday
+district: 1
+phones:
+  - '8-962-7327'
+  - '8-962-7325'
+coordinates:
+  lat: 14.7158281
+  lng: 120.9537582
+status: needs-review
+lastVerified: 2026-10-04
+sources:
+  - title: 'Valenzuela City Government - Barangays (name and legislative district)'
+    url: https://valenzuela.gov.ph/barangays/
+    accessed: 2026-10-04
+  - title: 'Valenzuela City Government - Directory: 3S Centers and Barangays (phone numbers)'
+    url: https://valenzuela.gov.ph/3s-centers-barangays/
+    accessed: 2026-10-04
+  - title: 'OpenStreetMap node 4217488500 (barangay hall location)'
+    url: https://www.openstreetmap.org/node/4217488500
+    accessed: 2026-10-04

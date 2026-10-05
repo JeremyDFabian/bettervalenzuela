@@ -20,9 +20,11 @@ import {
   HardHat,
   Heart,
   Keyboard,
+  Landmark,
   LayoutGrid,
   Leaf,
   MapPin,
+  Megaphone,
   Navigation,
   Phone,
   Receipt,
@@ -33,6 +35,7 @@ import {
   Stethoscope,
   Target,
   Umbrella,
+  User,
   Users,
   Volume2,
   Wallet,
@@ -73,6 +76,7 @@ export const icons = {
   flag: Flag,
   grid: LayoutGrid,
   heart: Heart,
+  user: User,
   users: Users,
   navigation: Navigation,
   keyboard: Keyboard,
@@ -81,6 +85,8 @@ export const icons = {
   contrast: Contrast,
   pause: CirclePause,
   globe: Globe,
+  landmark: Landmark,
+  megaphone: Megaphone,
 } as const;
 
 export type IconName = keyof typeof icons;

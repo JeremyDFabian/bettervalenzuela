@@ -1,7 +1,8 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { isPublished } from './drafts';
 
-type VerifiableCollection = 'offices' | 'services' | 'hotlines';
+type VerifiableCollection =
+  'offices' | 'services' | 'hotlines' | 'officials' | 'barangays' | 'history';
 
 /** Entries that may appear in this build: verified ones, plus needs-review ones when drafts are shown. */
 export function getPublished<C extends VerifiableCollection>(

@@ -8,6 +8,8 @@ export interface MenuItem {
   /** Present only when the page exists; unbuilt pages show as "Coming soon" without a link. */
   href?: string;
   comingSoon?: true;
+  /** Linked only when that collection has a published entry; otherwise shown as Coming soon. */
+  whenPublished?: 'history';
 }
 
 export interface MenuGroup {
@@ -36,13 +38,13 @@ export const menu: MenuEntry[] = [
             labelKey: 'nav.item.officials',
             descKey: 'nav.item.officials.d',
             icon: 'office',
-            comingSoon: true,
+            href: '/government/',
           },
           {
             labelKey: 'nav.item.barangays',
             descKey: 'nav.item.barangays.d',
             icon: 'map',
-            comingSoon: true,
+            href: '/barangays/',
           },
         ],
       },
@@ -103,7 +105,8 @@ export const menu: MenuEntry[] = [
             labelKey: 'nav.item.history',
             descKey: 'nav.item.history.d',
             icon: 'clock',
-            comingSoon: true,
+            href: '/history/',
+            whenPublished: 'history',
           },
           { labelKey: 'nav.item.quiz', descKey: 'nav.item.quiz.d', icon: 'help', comingSoon: true },
         ],
@@ -120,4 +123,22 @@ export function menuLinks(): string[] {
     ...(entry.groups?.flatMap((g) => g.items.flatMap((i) => (i.href ? [i.href] : []))) ?? []),
   ]);
   return [...new Set(paths)];
+}
+
+/** The menu for this build: items whose content is not published lose their link and show "Coming soon". */
+export function resolveMenu(entries: MenuEntry[], published: { history: boolean }): MenuEntry[] {
+  return entries.map((entry) => ({
+    ...entry,
+    ...(entry.groups && {
+      groups: entry.groups.map((group) => ({
+        ...group,
+        items: group.items.map((item) => {
+          if (!item.whenPublished || published[item.whenPublished]) return item;
+          const rest = { ...item };
+          delete rest.href;
+          return { ...rest, comingSoon: true as const };
+        }),
+      })),
+    }),
+  }));
 }

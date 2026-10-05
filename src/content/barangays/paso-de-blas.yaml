@@ -1,0 +1,20 @@
+name: Paso de Blas
+district: 2
+phones:
+  - '8-277-5755'
+  - '8-242-9422'
+coordinates:
+  lat: 14.7077415
+  lng: 120.9924575
+status: needs-review
+lastVerified: 2026-10-04
+sources:
+  - title: 'Valenzuela City Government - Barangays (name and legislative district)'
+    url: https://valenzuela.gov.ph/barangays/
+    accessed: 2026-10-04
+  - title: 'Valenzuela City Government - Directory: 3S Centers and Barangays (phone numbers)'
+    url: https://valenzuela.gov.ph/3s-centers-barangays/
+    accessed: 2026-10-04
+  - title: 'OpenStreetMap way 151811351 (barangay hall location)'
+    url: https://www.openstreetmap.org/way/151811351
+    accessed: 2026-10-04

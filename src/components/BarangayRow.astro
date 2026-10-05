@@ -1,0 +1,63 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { t } from '../i18n/t';
+import { barangayHref } from '../lib/routes';
+
+/** One barangay in the directory (lab ch17): name, first hall phone, and a chevron. The whole row links. */
+interface Props {
+  barangay: CollectionEntry<'barangays'>;
+}
+
+const { barangay } = Astro.props;
+const { name, phones } = barangay.data;
+const [firstPhone] = phones;
+const sub = firstPhone ? t('brgy.hallPhone', { phone: firstPhone }) : t('brgy.noPhone');
+---
+
+<a class="row" href={barangayHref(barangay.id)}>
+  <span class="text">
+    <span class="name">{name}</span>
+    <span class="sub">{sub}</span>
+  </span>
+  <span class="chev" aria-hidden="true">
+    ›
+  </span>
+</a>
+
+<style>
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 56px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  .row:hover {
+    background: var(--color-surface-hover);
+  }
+  .text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .name {
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
+  .sub {
+    overflow: hidden;
+    font-size: 0.78125rem;
+    color: var(--color-muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .chev {
+    margin-left: auto;
+    font-size: 1.25rem;
+    color: var(--color-muted);
+  }
+</style>

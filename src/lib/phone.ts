@@ -13,9 +13,9 @@ export function toTelHref(display: string): string | null {
   if (digits.length >= 3 && digits.length <= 4) return `tel:${digits}`;
   // Mobile: 09XX XXX XXXX
   if (digits.length === 11 && digits.startsWith('09')) return `tel:+63${digits.slice(1)}`;
-  // Metro Manila landline with area code: (02) 8XXX-XXXX
-  if (digits.length === 10 && digits.startsWith('02')) return `tel:+63${digits.slice(1)}`;
-  // Metro Manila landline without area code: 8XXX-XXXX
-  if (digits.length === 8 && digits.startsWith('8')) return `tel:+632${digits}`;
+  // Metro Manila landline with area code: (02) NXXX-XXXX, N being 2-9 since the 2019 eight-digit migration
+  if (digits.length === 10 && /^02[2-9]/.test(digits)) return `tel:+63${digits.slice(1)}`;
+  // Metro Manila landline without area code: NXXX-XXXX
+  if (digits.length === 8 && /^[2-9]/.test(digits)) return `tel:+632${digits}`;
   return null;
 }

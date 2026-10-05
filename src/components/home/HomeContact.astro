@@ -1,0 +1,139 @@
+---
+import Icon from '../Icon.astro';
+import PhoneActions from '../PhoneActions.astro';
+import { t } from '../../i18n/t';
+import { site } from '../../site.config';
+
+/** Approved home contact block (lab ch20): City Hall, and the city's official announcement channels. */
+---
+
+<section class="block" data-home-block="contact" aria-labelledby="home-contact-h">
+  <div class="inner">
+    <div class="head">
+      <h2 id="home-contact-h">{t('home.contact.title')}</h2>
+    </div>
+    <div class="cards">
+      <div class="card">
+        <span class="tile">
+          <Icon name="landmark" size={20} />
+        </span>
+        <div class="body">
+          <h3>{t('home.contact.cityHall')}</h3>
+          <p>{site.cityHall.address}</p>
+          <PhoneActions
+            numbers={[site.cityHall.phone]}
+            name={t('home.contact.cityHall')}
+            id="city-hall"
+          />
+        </div>
+      </div>
+      <div class="card">
+        <span class="tile">
+          <Icon name="megaphone" size={20} />
+        </span>
+        <div class="body">
+          <h3>{t('home.news.title')}</h3>
+          <p>{t('home.news.body')}</p>
+          <div class="links">
+            <a href={site.officialFacebook} rel="external">
+              {t('home.news.facebook')} ↗
+            </a>
+            <a href={site.officialWebsite} rel="external">
+              {t('home.news.website')} ↗
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .block {
+    padding: 48px 22px;
+  }
+  .inner {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+  .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  h2 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 14px;
+    background: var(--color-surface);
+  }
+  .tile {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--color-bg);
+    color: var(--color-primary);
+  }
+  .body {
+    min-width: 0;
+  }
+  h3 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
+  p {
+    font-size: 0.8125rem;
+    color: var(--color-text-2);
+  }
+  .body :global([data-phone-actions]) {
+    margin-top: 10px;
+  }
+  .links {
+    display: flex;
+    flex-direction: column;
+  }
+  .links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap-min);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-link);
+  }
+  @media (max-width: 47.99rem) {
+    .block {
+      padding: 36px 16px;
+    }
+  }
+  @media (max-width: 39.99rem) {
+    .head {
+      flex-direction: column;
+      gap: 0;
+    }
+    h2 {
+      font-size: 1.5rem;
+    }
+    .cards {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

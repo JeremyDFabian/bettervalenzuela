@@ -1,0 +1,19 @@
+name: Pariancillo Villa
+district: 1
+phones:
+  - '8-293-5705'
+coordinates:
+  lat: 14.7072241
+  lng: 120.9444225
+status: needs-review
+lastVerified: 2026-10-04
+sources:
+  - title: 'Valenzuela City Government - Barangays (name and legislative district)'
+    url: https://valenzuela.gov.ph/barangays/
+    accessed: 2026-10-04
+  - title: 'Valenzuela City Government - Directory: 3S Centers and Barangays (phone numbers)'
+    url: https://valenzuela.gov.ph/3s-centers-barangays/
+    accessed: 2026-10-04
+  - title: 'OpenStreetMap way 849692132 (barangay hall location)'
+    url: https://www.openstreetmap.org/way/849692132
+    accessed: 2026-10-04

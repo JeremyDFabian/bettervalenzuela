@@ -11,12 +11,13 @@ interface Props {
   description: string;
   lede: string;
   showUpdated?: boolean | undefined;
+  noindex?: boolean | undefined;
 }
 
-const { title, description, lede, showUpdated = true } = Astro.props;
+const { title, description, lede, showUpdated = true, noindex = false } = Astro.props;
 ---
 
-<BaseLayout {title} {description}>
+<BaseLayout {title} {description} {noindex}>
   <div class="band">
     <div class="narrow">
       <Breadcrumb items={[{ label: t('nav.home'), href: '/' }, { label: title }]} tone="onColor" />
