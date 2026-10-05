@@ -71,3 +71,14 @@ export function groupOfficials<T extends { data: OfficialLike }>(entries: T[]): 
     exOfficio: of('ex-officio').sort(bySurname),
   };
 }
+
+/** Which people sections /government/ renders: ex-officio members count toward the council. */
+export function governmentSections(groups: OfficialGroups<unknown>): {
+  executive: boolean;
+  council: boolean;
+} {
+  return {
+    executive: groups.executive.length > 0,
+    council: groups.districts.length > 0 || groups.exOfficio.length > 0,
+  };
+}

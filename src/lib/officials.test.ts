@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { groupOfficials, surnameKey } from './officials';
+import { governmentSections, groupOfficials, surnameKey } from './officials';
 import type { OfficialPosition } from './schemas';
 
 describe('surnameKey', () => {
@@ -56,5 +56,22 @@ describe('groupOfficials', () => {
 
   test('empty input gives empty groups', () => {
     expect(groupOfficials([])).toEqual({ executive: [], districts: [], exOfficio: [] });
+  });
+});
+
+describe('governmentSections', () => {
+  const group = (executive: number, districts: number, exOfficio: number) => ({
+    executive: Array.from({ length: executive }, () => 0),
+    districts: Array.from({ length: districts }, () => ({ district: 1 as const, members: [0] })),
+    exOfficio: Array.from({ length: exOfficio }, () => 0),
+  });
+  test('nothing published renders no people sections', () => {
+    expect(governmentSections(group(0, 0, 0))).toEqual({ executive: false, council: false });
+  });
+  test('the council renders for districts alone', () => {
+    expect(governmentSections(group(2, 1, 0))).toEqual({ executive: true, council: true });
+  });
+  test('the council renders for ex-officio members alone', () => {
+    expect(governmentSections(group(0, 0, 1))).toEqual({ executive: false, council: true });
   });
 });

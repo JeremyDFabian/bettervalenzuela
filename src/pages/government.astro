@@ -10,7 +10,7 @@ import { site } from '../site.config';
 import { t } from '../i18n/t';
 import { getPublished } from '../lib/content';
 import { buildIssueUrl } from '../lib/issues';
-import { groupOfficials } from '../lib/officials';
+import { governmentSections, groupOfficials } from '../lib/officials';
 import { mergeSources } from '../lib/sources';
 
 /**
@@ -22,14 +22,15 @@ const offices = (await getPublished('offices')).sort((a, b) =>
   a.data.name.localeCompare(b.data.name, 'en'),
 );
 const groups = groupOfficials(officials);
-const hasPeople = groups.executive.length > 0 || groups.districts.length > 0;
+const sections = governmentSections(groups);
+const hasPeople = sections.executive || sections.council;
 const { sources, lastVerified } = mergeSources(
   [...officials, ...offices].map((entry) => entry.data),
 );
 
 const navItems = [
-  ...(groups.executive.length > 0 ? [{ id: 'executive', label: t('gov.executive') }] : []),
-  ...(groups.districts.length > 0 ? [{ id: 'council', label: t('gov.council') }] : []),
+  ...(sections.executive ? [{ id: 'executive', label: t('gov.executive') }] : []),
+  ...(sections.council ? [{ id: 'council', label: t('gov.council') }] : []),
   { id: 'offices', label: t('gov.offices') },
 ];
 
@@ -70,7 +71,7 @@ const noindex = [...officials, ...offices].some((entry) => entry.data.status ===
         </div>
       )}
 
-      {groups.executive.length > 0 && (
+      {sections.executive && (
         <section id="executive" aria-labelledby="executive-h">
           <h2 id="executive-h">{t('gov.executive')}</h2>
           <ul class="grid two">
@@ -83,7 +84,7 @@ const noindex = [...officials, ...offices].some((entry) => entry.data.status ===
         </section>
       )}
 
-      {groups.districts.length > 0 && (
+      {sections.council && (
         <section id="council" aria-labelledby="council-h">
           <h2 id="council-h">{t('gov.council')}</h2>
           {groups.districts.map((group) => (
