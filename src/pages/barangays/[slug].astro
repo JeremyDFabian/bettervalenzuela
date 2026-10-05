@@ -2,6 +2,7 @@
 import type { CollectionEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Breadcrumb from '../../components/Breadcrumb.astro';
+import MapIsland from '../../components/islands/Map.astro';
 import Icon from '../../components/Icon.astro';
 import PhoneActions from '../../components/PhoneActions.astro';
 import ReviewBadge from '../../components/ReviewBadge.astro';
@@ -10,7 +11,7 @@ import { site } from '../../site.config';
 import { t } from '../../i18n/t';
 import { getPublished } from '../../lib/content';
 import { buildIssueUrl } from '../../lib/issues';
-import { osmLink, placeJsonLd } from '../../lib/places';
+import { placeJsonLd } from '../../lib/places';
 import { barangayHref } from '../../lib/routes';
 
 export async function getStaticPaths() {
@@ -77,10 +78,12 @@ const needsReview = status === 'needs-review';
       {coordinates && (
         <section id="location" aria-labelledby="location-h">
           <h2 id="location-h">{t('brgy.location')}</h2>
-          <p class="note">{t('brgy.locationNote')}</p>
-          <a class="osm" href={osmLink(coordinates.lat, coordinates.lng)} rel="external">
-            {t('brgy.openOsm')} ↗
-          </a>
+          <MapIsland
+            lat={coordinates.lat}
+            lng={coordinates.lng}
+            label={t('brgy.pageTitle', { name })}
+            note={t('brgy.locationNote')}
+          />
         </section>
       )}
 
@@ -163,20 +166,6 @@ const needsReview = status === 'needs-review';
   }
   .card-text :global([data-phone-actions]) {
     margin-top: 12px;
-  }
-  .note {
-    margin-bottom: 4px;
-    font-size: 0.875rem;
-    color: var(--color-text-2);
-  }
-  .osm {
-    display: inline-flex;
-    align-items: center;
-    min-height: var(--tap-min);
-    font-size: 0.9375rem;
-    font-weight: 600;
-    color: var(--color-link);
-    text-decoration: none;
   }
   @media (min-width: 48rem) {
     .band {

@@ -1,0 +1,69 @@
+---
+import { t } from '../../i18n/t';
+import { osmLink } from '../../lib/places';
+
+/** Map island: note and OSM link always; a Leaflet map once scrolled near (approved lab ch18). */
+interface Props {
+  lat: number;
+  lng: number;
+  label: string;
+  note: string;
+}
+const { lat, lng, label, note } = Astro.props;
+---
+
+<div class="map-island" data-map-island>
+  <p class="note">{note}</p>
+  <a class="osm" href={osmLink(lat, lng)} rel="external">
+    {t('brgy.openOsm')} ↗
+  </a>
+  <div
+    class="map"
+    data-map
+    data-lat={lat}
+    data-lng={lng}
+    data-label={label}
+    data-attribution={t('map.attribution')}
+    role="region"
+    aria-label={t('map.label', { label })}
+    tabindex="0"
+    hidden
+  ></div>
+</div>
+
+<script>
+  import { initMaps } from '../../lib/map-client';
+  initMaps();
+</script>
+
+<style>
+  .note {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--color-text-2);
+  }
+  .osm {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap-min);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-link);
+    text-decoration: none;
+  }
+  .map {
+    height: 260px;
+    margin-top: 8px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--color-surface);
+  }
+  .map[hidden] {
+    display: none;
+  }
+  @media (min-width: 48rem) {
+    .map {
+      height: 360px;
+    }
+  }
+</style>

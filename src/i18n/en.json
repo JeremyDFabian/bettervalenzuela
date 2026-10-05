@@ -303,5 +303,7 @@
   "brgy.noPhone": "No hall phone listed",
   "brgy.noAddress": "Street address not yet listed",
   "brgy.locationNote": "Barangay hall location, from OpenStreetMap.",
-  "brgy.hallName": "Barangay {name} hall"
+  "brgy.hallName": "Barangay {name} hall",
+  "map.label": "Map showing {label}",
+  "map.attribution": "© OpenStreetMap contributors"
 }

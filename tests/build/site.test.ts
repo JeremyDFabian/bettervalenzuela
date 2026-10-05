@@ -339,3 +339,54 @@ describe('barangays', () => {
     }
   });
 });
+
+describe('map island', () => {
+  test('ships the fallback link and a hidden, labelled map container on barangay pages', () => {
+    const html = read(DRAFTS, 'barangays/malinta/index.html');
+    expect(html).toContain('href="https://www.openstreetmap.org/?mlat=');
+    expect(html).toMatch(/<div[^>]*data-map[^>]*hidden/);
+    expect(html).toMatch(/data-map[^>]*aria-label="Map showing [^"]+"/);
+  });
+
+  test('the map script loads only on barangay detail pages', () => {
+    const srcs = (path: string) =>
+      new Set(
+        [...read(DRAFTS, path).matchAll(/<script[^>]*src="([^"]+)"/g)].map((m) => m[1] ?? ''),
+      );
+    const others = [
+      'index.html',
+      'barangays/index.html',
+      'government/index.html',
+      'hotlines/index.html',
+    ];
+    // Scripts on the barangay page that no non-map page loads (PhoneActions' script is shared).
+    const shared = new Set(others.flatMap((page) => [...srcs(page)]));
+    const mapOnly = [...srcs('barangays/malinta/index.html')].filter((s) => !shared.has(s));
+    expect(mapOnly.length).toBeGreaterThan(0);
+    expect(
+      [...srcs('barangays/malinta/index.html')].filter((s) => /Map\.astro/.test(s)),
+    ).toHaveLength(1);
+    for (const page of others) {
+      const html = read(DRAFTS, page);
+      expect(html, page).not.toContain('data-map');
+      expect(html, page).not.toContain('leaflet');
+      expect(
+        [...srcs(page)].filter((s) => /Map\.astro/.test(s)),
+        page,
+      ).toEqual([]);
+      for (const src of mapOnly) expect(srcs(page).has(src), `${page} loads ${src}`).toBe(false);
+    }
+  });
+
+  test('the Leaflet stylesheet is not render-blocking on barangay pages', () => {
+    const html = read(DRAFTS, 'barangays/malinta/index.html');
+    expect(html).not.toMatch(/<link[^>]*rel="stylesheet"[^>]*href="\/_astro\/leaflet/);
+    expect(html).not.toMatch(/<link[^>]*href="\/_astro\/leaflet[^>]*rel="stylesheet"/);
+  });
+
+  test('the CSP allows OpenStreetMap tiles and nothing broader', () => {
+    const headers = read(PROD, '_headers');
+    expect(headers).toMatch(/img-src 'self' data: https:\/\/tile\.openstreetmap\.org;/);
+    expect(headers).toContain("script-src 'self' 'wasm-unsafe-eval'");
+  });
+});
