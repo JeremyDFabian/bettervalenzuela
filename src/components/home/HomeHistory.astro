@@ -1,5 +1,6 @@
 ---
 import { t } from '../../i18n/t';
+import ReviewBadge from '../ReviewBadge.astro';
 import { getPublished } from '../../lib/content';
 import { featuredEvents } from '../../lib/history';
 
@@ -17,6 +18,7 @@ const events = entry ? featuredEvents(entry.data.timeline) : [];
           {t('home.history.more')} ›
         </a>
       </div>
+      {entry?.data.status === 'needs-review' && <ReviewBadge />}
       <ul class="events">
         {events.map((event) => (
           <li>

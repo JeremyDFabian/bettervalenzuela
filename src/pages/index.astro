@@ -5,11 +5,20 @@ import HomeHistory from '../components/home/HomeHistory.astro';
 import HomeLeadership from '../components/home/HomeLeadership.astro';
 import HomeContact from '../components/home/HomeContact.astro';
 import { site } from '../site.config';
+import { getPublished } from '../lib/content';
+import { groupOfficials } from '../lib/officials';
 // Plan 2b adds blocks 4 and 5 (statistics, rain outlook and map) above HomeHistory, and the quiz
 // at the end (approved layout, lab #c15 state E).
+
+// Drafts rule: noindex when any needs-review content shows (the history teaser, the executive cards).
+const history = (await getPublished('history'))[0];
+const { executive } = groupOfficials(await getPublished('officials'));
+const noindex =
+  history?.data.status === 'needs-review' ||
+  executive.some((official) => official.data.status === 'needs-review');
 ---
 
-<BaseLayout title={site.portalName} showHeaderSearch={false} searchable={false}>
+<BaseLayout title={site.portalName} showHeaderSearch={false} searchable={false} {noindex}>
   <Hero />
   <HomeHistory />
   <HomeLeadership />

@@ -450,6 +450,18 @@ describe('barangay meta descriptions', () => {
   });
 });
 
+describe('home page drafts rule', () => {
+  test('drafts: noindex, and the history block shows the review badge', () => {
+    const html = read(DRAFTS, 'index.html');
+    expect(html).toContain('<meta name="robots" content="noindex"');
+    const block = html.split('data-home-block="history"')[1]?.split('</section>')[0] ?? '';
+    expect(block).toContain('data-review-badge');
+  });
+  test('production: no noindex', () => {
+    expect(read(PROD, 'index.html')).not.toContain('content="noindex"');
+  });
+});
+
 describe('history', () => {
   test('production: no page and no menu link while history needs review', () => {
     expect(existsSync(join(PROD, 'history/index.html'))).toBe(false);
