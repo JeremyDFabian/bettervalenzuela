@@ -2,8 +2,8 @@ name: Marulas
 district: 2
 phones:
   - '8-577-8462'
-status: needs-review
-lastVerified: 2026-10-04
+status: verified
+lastVerified: 2026-10-05
 sources:
   - title: 'Valenzuela City Government - Barangays (name and legislative district)'
     url: https://valenzuela.gov.ph/barangays/
