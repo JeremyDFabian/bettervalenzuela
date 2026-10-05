@@ -3,8 +3,8 @@ position: councilor
 district: 2
 termStart: 2025-06-30
 termEnd: 2028-06-30
-status: needs-review
-lastVerified: 2026-10-04
+status: verified
+lastVerified: 2026-10-05
 sources:
   - title: 'City Government of Valenzuela - City Officials'
     url: https://www.valenzuela.gov.ph/city-officials

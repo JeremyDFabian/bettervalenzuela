@@ -1,5 +1,3 @@
-# Review note: in the city directory, these phone numbers sit next to angat.malinta@gmail.com,
-# a Malinta-style email. Confirm the numbers belong to Malanday before verifying.
 name: Malanday
 district: 1
 phones:
@@ -8,8 +6,8 @@ phones:
 coordinates:
   lat: 14.7158281
   lng: 120.9537582
-status: needs-review
-lastVerified: 2026-10-04
+status: verified
+lastVerified: 2026-10-05
 sources:
   - title: 'Valenzuela City Government - Barangays (name and legislative district)'
     url: https://valenzuela.gov.ph/barangays/

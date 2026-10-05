@@ -230,9 +230,9 @@ describe('home page', () => {
     return start === -1 ? null : html.slice(start, html.indexOf('</section>', start));
   };
 
-  test('production hides leadership and history while they need review, but shows contact', () => {
-    expect(block(PROD, 'leadership')).toBeNull();
-    expect(block(PROD, 'history')).toBeNull();
+  test('production shows verified leadership and history linking to their pages, and contact', () => {
+    expect(block(PROD, 'leadership')).toContain('href="/government/"');
+    expect(block(PROD, 'history')).toContain('href="/history/"');
     const contact = block(PROD, 'contact');
     expect(contact).toContain('href="https://www.valenzuela.gov.ph/"');
     expect(contact).toMatch(/href="https:\/\/(www\.)?facebook\.com\//);
@@ -284,12 +284,13 @@ describe('machine-readable files', () => {
     expect(read(DRAFTS, 'llms.txt')).toContain('New business permit (sample)');
   });
 
-  test('llms.txt links the new sections, and lists barangays only when published', () => {
+  test('llms.txt links the new sections and lists the published barangays', () => {
     const prod = read(PROD, 'llms.txt');
     expect(prod).toContain('/government/');
     expect(prod).toContain('/barangays/');
-    expect(prod).not.toContain('/history/');
-    expect(prod).not.toMatch(/\/barangays\/[a-z0-9-]+\//);
+    expect(prod).toContain('/history/');
+    expect(prod).toContain('## Barangays');
+    expect(prod).toMatch(/\/barangays\/malinta\//);
     const drafts = read(DRAFTS, 'llms.txt');
     expect(drafts).toContain('/history/');
     expect(drafts).toContain('## Barangays');
@@ -325,22 +326,25 @@ describe('main menu accessibility', () => {
 });
 
 describe('government page', () => {
-  test('production shows the being-verified notice and no unverified names', () => {
-    const html = read(PROD, 'government/index.html');
-    expect(html.replaceAll('&#39;', "'")).toContain("Officials' information is being verified.");
-    expect(html).not.toContain('data-review-badge');
-  });
-
-  test('drafts list the mayor first, both districts, and ex-officio members, with badges and noindex', () => {
-    const html = read(DRAFTS, 'government/index.html');
-    expect(html).toContain('City Mayor');
-    expect(html).toContain('District 1');
-    expect(html).toContain('District 2');
-    expect(html).toContain('Ex-officio members');
-    expect(html).toContain('data-review-badge');
-    expect(html).toMatch(/<meta name="robots" content="noindex"\s*\/?>/);
-    expect(html.indexOf('City Mayor')).toBeLessThan(html.indexOf('Councilor, District 1'));
-  });
+  test.each([
+    ['production', PROD],
+    ['drafts', DRAFTS],
+  ])(
+    '%s list the mayor first, both districts, and ex-officio members, with no badge, and noindex only in drafts',
+    (_name, dir) => {
+      const html = read(dir, 'government/index.html');
+      expect(html).toContain('City Mayor');
+      expect(html).toContain('District 1');
+      expect(html).toContain('District 2');
+      expect(html).toContain('Ex-officio members');
+      expect(html).not.toContain("Officials' information is being verified.");
+      expect(html).not.toContain('data-review-badge');
+      // The drafts build also lists sample offices that still need review, so only production is indexable.
+      if (dir === PROD) expect(html).not.toMatch(/<meta name="robots" content="noindex"/);
+      else expect(html).toMatch(/<meta name="robots" content="noindex"/);
+      expect(html.indexOf('City Mayor')).toBeLessThan(html.indexOf('Councilor, District 1'));
+    },
+  );
 
   test('the menu links to it in both builds', () => {
     for (const dir of [PROD, DRAFTS])
@@ -352,27 +356,26 @@ describe('barangays', () => {
   const files = (dir: string) =>
     readdirSync(join(dir, 'barangays'), { withFileTypes: true }).filter((d) => d.isDirectory());
 
-  test('production shows the being-verified notice and builds no draft barangay pages', () => {
-    expect(read(PROD, 'barangays/index.html')).toContain('Barangay information is being verified.');
-    expect(files(PROD)).toHaveLength(0);
-  });
-
-  test('drafts build one page per barangay, grouped by district on the index', () => {
-    expect(files(DRAFTS)).toHaveLength(33);
-    const html = read(DRAFTS, 'barangays/index.html');
+  test.each([
+    ['production', PROD],
+    ['drafts', DRAFTS],
+  ])('%s build one page per verified barangay, grouped by district on the index', (_name, dir) => {
+    expect(files(dir)).toHaveLength(33);
+    const html = read(dir, 'barangays/index.html');
+    expect(html).not.toContain('Barangay information is being verified.');
     expect(html).toContain('District 1');
     expect(html).toContain('District 2');
     expect(html.match(/href="\/barangays\/[a-z0-9-]+\/"/g)?.length).toBeGreaterThanOrEqual(33);
   });
 
-  test('a barangay page has Place JSON-LD, the OSM link, a badge, noindex and the no-address note', () => {
-    const html = read(DRAFTS, 'barangays/malinta/index.html');
+  test('a verified barangay page has Place JSON-LD, the OSM link and the no-address note, with no badge or noindex', () => {
+    const html = read(PROD, 'barangays/malinta/index.html');
     const ld = html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)?.[1];
     expect(JSON.parse(ld ?? '{}')['@type']).toBe('Place');
     expect(html).toContain('href="https://www.openstreetmap.org/?mlat=');
-    expect(html).toContain('data-review-badge');
+    expect(html).not.toContain('data-review-badge');
     expect(html).toContain('Street address not yet listed');
-    expect(html).toMatch(/<meta name="robots" content="noindex"\s*\/?>/);
+    expect(html).not.toMatch(/<meta name="robots" content="noindex"/);
   });
 
   test('pages without coordinates have no location section; pages without phones have no call button', () => {
@@ -451,11 +454,12 @@ describe('barangay meta descriptions', () => {
 });
 
 describe('home page drafts rule', () => {
-  test('drafts: noindex, and the history block shows the review badge', () => {
+  test('verified home content is indexable and unbadged', () => {
     const html = read(DRAFTS, 'index.html');
-    expect(html).toContain('<meta name="robots" content="noindex"');
+    expect(html).not.toContain('content="noindex"');
     const block = html.split('data-home-block="history"')[1]?.split('</section>')[0] ?? '';
-    expect(block).toContain('data-review-badge');
+    expect(block.length).toBeGreaterThan(0);
+    expect(block).not.toContain('data-review-badge');
   });
   test('production: no noindex', () => {
     expect(read(PROD, 'index.html')).not.toContain('content="noindex"');
@@ -463,9 +467,12 @@ describe('home page drafts rule', () => {
 });
 
 describe('history', () => {
-  test('production: no page and no menu link while history needs review', () => {
-    expect(existsSync(join(PROD, 'history/index.html'))).toBe(false);
-    expect(read(PROD, 'about/index.html')).not.toContain('href="/history/"');
+  test('production: the page and menu link exist, with no badge or noindex', () => {
+    expect(existsSync(join(PROD, 'history/index.html'))).toBe(true);
+    expect(read(PROD, 'about/index.html')).toContain('href="/history/"');
+    const html = read(PROD, 'history/index.html');
+    expect(html).not.toContain('data-review-badge');
+    expect(html).not.toContain('content="noindex"');
   });
 
   test('drafts: a timeline in year order with per-event sources, and a menu link', () => {

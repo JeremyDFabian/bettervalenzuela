@@ -5,8 +5,8 @@ phones:
 coordinates:
   lat: 14.7117318
   lng: 120.9437507
-status: needs-review
-lastVerified: 2026-10-04
+status: verified
+lastVerified: 2026-10-05
 sources:
   - title: 'Valenzuela City Government - Barangays (name and legislative district)'
     url: https://valenzuela.gov.ph/barangays/

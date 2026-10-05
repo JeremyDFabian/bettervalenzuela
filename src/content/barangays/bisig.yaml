@@ -2,8 +2,8 @@ name: Bisig
 district: 1
 phones:
   - '8-636-3070'
-status: needs-review
-lastVerified: 2026-10-04
+status: verified
+lastVerified: 2026-10-05
 sources:
   - title: 'Valenzuela City Government - Barangays (name and legislative district)'
     url: https://valenzuela.gov.ph/barangays/
