@@ -177,6 +177,10 @@ describe('coordinatesSchema', () => {
   test('accepts a point in Valenzuela', () => {
     expect(coordinatesSchema.safeParse({ lat: 14.7, lng: 120.97 }).success).toBe(true);
   });
+  test('accepts the northern edge of the city and rejects beyond it', () => {
+    expect(coordinatesSchema.safeParse({ lat: 14.765, lng: 120.97 }).success).toBe(true);
+    expect(coordinatesSchema.safeParse({ lat: 14.78, lng: 120.97 }).success).toBe(false);
+  });
   test('rejects swapped lat/lng and points outside the city', () => {
     expect(coordinatesSchema.safeParse({ lat: 120.97, lng: 14.7 }).success).toBe(false);
     expect(coordinatesSchema.safeParse({ lat: 14.6, lng: 120.98 }).success).toBe(false); // Manila

@@ -107,7 +107,7 @@ export const hotlinesSchema = z.object({
 
 /** A point inside a box around Valenzuela; catches swapped or mistyped coordinates. */
 export const coordinatesSchema = z.object({
-  lat: z.number().min(14.65).max(14.75),
+  lat: z.number().min(14.65).max(14.77),
   lng: z.number().min(120.92).max(121.02),
 });
 
