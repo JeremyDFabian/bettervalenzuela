@@ -9,7 +9,8 @@
         "http://localhost/hotlines/",
         "http://localhost/government/",
         "http://localhost/barangays/",
-        "http://localhost/barangays/malinta/"
+        "http://localhost/barangays/malinta/",
+        "http://localhost/history/"
       ],
       "numberOfRuns": 1
     },

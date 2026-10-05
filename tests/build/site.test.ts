@@ -390,3 +390,19 @@ describe('map island', () => {
     expect(headers).toContain("script-src 'self' 'wasm-unsafe-eval'");
   });
 });
+
+describe('history', () => {
+  test('production: no page and no menu link while history needs review', () => {
+    expect(existsSync(join(PROD, 'history/index.html'))).toBe(false);
+    expect(read(PROD, 'about/index.html')).not.toContain('href="/history/"');
+  });
+
+  test('drafts: a timeline in year order with per-event sources, and a menu link', () => {
+    const html = read(DRAFTS, 'history/index.html');
+    const years = [...html.matchAll(/<time[^>]*datetime="(\d{4})"/g)].map((m) => Number(m[1]));
+    expect(years.length).toBeGreaterThan(1);
+    expect(years).toEqual([...years].sort((a, b) => a - b));
+    expect(html).toMatch(/<ol[^>]*class="timeline/);
+    expect(read(DRAFTS, 'about/index.html')).toContain('href="/history/"');
+  });
+});

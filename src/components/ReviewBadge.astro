@@ -1,8 +1,20 @@
 ---
 import { t } from '../i18n/t';
+
+interface Props {
+  /** "onColor" is for the bright blue band, where the draft orange fails contrast. */
+  tone?: 'default' | 'onColor';
+}
+
+const { tone = 'default' } = Astro.props;
 ---
 
-<p class="review-badge" role="note" data-review-badge data-pagefind-ignore>
+<p
+  class:list={['review-badge', { 'on-color': tone === 'onColor' }]}
+  role="note"
+  data-review-badge
+  data-pagefind-ignore
+>
   {t('meta.needsReview')}
 </p>
 
@@ -11,5 +23,8 @@ import { t } from '../i18n/t';
     margin: 6px 0 0;
     font-size: 0.8125rem;
     color: var(--color-draft);
+  }
+  .review-badge.on-color {
+    color: #fff;
   }
 </style>

@@ -4,7 +4,7 @@ import Icon from './Icon.astro';
 import Wordmark from './Wordmark.astro';
 import Search from './islands/Search.astro';
 import { t } from '../i18n/t';
-import { menu } from '../lib/nav';
+import { menu as baseMenu, resolveMenu } from '../lib/nav';
 import { byTitle, getPublished } from '../lib/content';
 import { categoryHref, serviceHref } from '../lib/routes';
 import type { IconName } from '../lib/icons';
@@ -16,6 +16,7 @@ interface Props {
 
 const { showSearch = true } = Astro.props;
 const current = Astro.url.pathname;
+const menu = resolveMenu(baseMenu, { history: (await getPublished('history')).length > 0 });
 
 const categories = (await getCollection('serviceCategories')).sort(
   (a, b) => a.data.order - b.data.order,
