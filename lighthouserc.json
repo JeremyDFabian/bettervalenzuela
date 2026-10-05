@@ -7,7 +7,9 @@
         "http://localhost/services/",
         "http://localhost/services/business/sample-business-permit/",
         "http://localhost/hotlines/",
-        "http://localhost/government/"
+        "http://localhost/government/",
+        "http://localhost/barangays/",
+        "http://localhost/barangays/malinta/"
       ],
       "numberOfRuns": 1
     },

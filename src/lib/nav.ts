@@ -42,7 +42,7 @@ export const menu: MenuEntry[] = [
             labelKey: 'nav.item.barangays',
             descKey: 'nav.item.barangays.d',
             icon: 'map',
-            comingSoon: true,
+            href: '/barangays/',
           },
         ],
       },

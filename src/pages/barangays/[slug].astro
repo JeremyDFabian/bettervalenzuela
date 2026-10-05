@@ -1,0 +1,189 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+import Icon from '../../components/Icon.astro';
+import PhoneActions from '../../components/PhoneActions.astro';
+import ReviewBadge from '../../components/ReviewBadge.astro';
+import SourceLine from '../../components/SourceLine.astro';
+import { site } from '../../site.config';
+import { t } from '../../i18n/t';
+import { getPublished } from '../../lib/content';
+import { buildIssueUrl } from '../../lib/issues';
+import { osmLink, placeJsonLd } from '../../lib/places';
+import { barangayHref } from '../../lib/routes';
+
+export async function getStaticPaths() {
+  return (await getPublished('barangays')).map((barangay) => ({
+    params: { slug: barangay.id },
+    props: { barangay },
+  }));
+}
+
+interface Props {
+  barangay: CollectionEntry<'barangays'>;
+}
+
+/** Approved barangay page (lab ch18): hall contacts, then the location (Task 6 adds the map here). */
+const { barangay } = Astro.props;
+const { name, district, hallAddress, phones, coordinates, sources, lastVerified, status } =
+  barangay.data;
+const title = t('brgy.pageTitle', { name });
+const pageUrl = new URL(barangayHref(barangay.id), Astro.site ?? site.url).toString();
+const issueUrl = buildIssueUrl(site.repoUrl, { title, url: pageUrl });
+const needsReview = status === 'needs-review';
+---
+
+<BaseLayout
+  {title}
+  description={t('brgy.description')}
+  section="barangays"
+  noindex={needsReview}
+  jsonLd={placeJsonLd({ name: title, address: hallAddress, url: pageUrl, coordinates })}
+>
+  <div class="band">
+    <div class="inner">
+      <Breadcrumb
+        items={[
+          { label: t('nav.home'), href: '/' },
+          { label: t('brgy.title'), href: '/barangays/' },
+          { label: name },
+        ]}
+      />
+      <h1>{title}</h1>
+      <p class="lede">{t('brgy.district', { n: district })}</p>
+      {needsReview && <ReviewBadge />}
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="inner">
+      <section id="hall" aria-labelledby="hall-h">
+        <h2 id="hall-h">{t('brgy.hall')}</h2>
+        <div class="card">
+          <span class="tile">
+            <Icon name="landmark" size={20} />
+          </span>
+          <div class="card-text">
+            {phones.length > 0 && <p class="phones">{phones.join(' · ')}</p>}
+            <p class="address">{hallAddress ?? t('brgy.noAddress')}</p>
+            {phones.length > 0 && (
+              <PhoneActions numbers={phones} name={t('brgy.hallName', { name })} id="hall" />
+            )}
+          </div>
+        </div>
+      </section>
+
+      {coordinates && (
+        <section id="location" aria-labelledby="location-h">
+          <h2 id="location-h">{t('brgy.location')}</h2>
+          <p class="note">{t('brgy.locationNote')}</p>
+          <a class="osm" href={osmLink(coordinates.lat, coordinates.lng)} rel="external">
+            {t('brgy.openOsm')} ↗
+          </a>
+        </section>
+      )}
+
+      <SourceLine {sources} {lastVerified} {issueUrl} />
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .band {
+    padding: 0 16px 22px;
+    border-bottom: 1px solid var(--color-band-soft-edge);
+    background: var(--color-band-soft);
+  }
+  .inner {
+    width: 100%;
+    max-width: 47.5rem;
+    margin-inline: auto;
+  }
+  .band .inner {
+    padding-top: 20px;
+  }
+  .body {
+    padding: 4px 16px 64px;
+  }
+  h1 {
+    margin: 12px 0 6px;
+    font-size: var(--text-2xl);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+  .lede {
+    max-width: 52ch;
+    font-size: 1.0625rem;
+    line-height: 1.4;
+    color: var(--color-muted);
+  }
+  section {
+    scroll-margin-top: var(--space-6);
+  }
+  h2 {
+    margin: 32px 0 10px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+  .card {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px;
+    border-radius: 14px;
+    background: var(--color-surface);
+  }
+  .tile {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--color-bg);
+    color: var(--color-primary);
+  }
+  .card-text {
+    min-width: 0;
+  }
+  .phones {
+    font-size: 1.0625rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text);
+  }
+  .address {
+    font-size: 0.8125rem;
+    color: var(--color-text-2);
+  }
+  .card-text :global([data-phone-actions]) {
+    margin-top: 12px;
+  }
+  .note {
+    margin-bottom: 4px;
+    font-size: 0.875rem;
+    color: var(--color-text-2);
+  }
+  .osm {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap-min);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-link);
+    text-decoration: none;
+  }
+  @media (min-width: 48rem) {
+    .band {
+      padding: 0 22px 28px;
+    }
+    .body {
+      padding-inline: 22px;
+    }
+  }
+</style>

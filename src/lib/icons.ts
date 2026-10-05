@@ -20,6 +20,7 @@ import {
   HardHat,
   Heart,
   Keyboard,
+  Landmark,
   LayoutGrid,
   Leaf,
   MapPin,
@@ -83,6 +84,7 @@ export const icons = {
   contrast: Contrast,
   pause: CirclePause,
   globe: Globe,
+  landmark: Landmark,
 } as const;
 
 export type IconName = keyof typeof icons;

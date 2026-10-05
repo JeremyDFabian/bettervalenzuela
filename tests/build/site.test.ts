@@ -296,3 +296,46 @@ describe('government page', () => {
       expect(read(dir, 'about/index.html')).toContain('href="/government/"');
   });
 });
+
+describe('barangays', () => {
+  const files = (dir: string) =>
+    readdirSync(join(dir, 'barangays'), { withFileTypes: true }).filter((d) => d.isDirectory());
+
+  test('production shows the being-verified notice and builds no draft barangay pages', () => {
+    expect(read(PROD, 'barangays/index.html')).toContain('Barangay information is being verified.');
+    expect(files(PROD)).toHaveLength(0);
+  });
+
+  test('drafts build one page per barangay, grouped by district on the index', () => {
+    expect(files(DRAFTS)).toHaveLength(33);
+    const html = read(DRAFTS, 'barangays/index.html');
+    expect(html).toContain('District 1');
+    expect(html).toContain('District 2');
+    expect(html.match(/href="\/barangays\/[a-z0-9-]+\/"/g)?.length).toBeGreaterThanOrEqual(33);
+  });
+
+  test('a barangay page has Place JSON-LD, the OSM link, a badge, noindex and the no-address note', () => {
+    const html = read(DRAFTS, 'barangays/malinta/index.html');
+    const ld = html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)?.[1];
+    expect(JSON.parse(ld ?? '{}')['@type']).toBe('Place');
+    expect(html).toContain('href="https://www.openstreetmap.org/?mlat=');
+    expect(html).toContain('data-review-badge');
+    expect(html).toContain('Street address not yet listed');
+    expect(html).toMatch(/<meta name="robots" content="noindex"\s*\/?>/);
+  });
+
+  test('pages without coordinates have no location section; pages without phones have no call button', () => {
+    for (const dirent of files(DRAFTS)) {
+      const html = read(DRAFTS, `barangays/${dirent.name}/index.html`);
+      const ld = JSON.parse(
+        html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)?.[1] ?? '{}',
+      );
+      expect(html.includes('id="location"'), dirent.name).toBe('geo' in ld);
+      // Only the hall section: the site-wide hotline strip has its own tel: links.
+      const start = html.indexOf('id="hall"');
+      const hall = html.slice(start, html.indexOf('</section>', start));
+      expect(start, dirent.name).toBeGreaterThan(-1);
+      if (!hall.includes('data-phone-actions')) expect(hall, dirent.name).not.toContain('tel:');
+    }
+  });
+});

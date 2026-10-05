@@ -286,5 +286,22 @@
   "gov.term": "Term {start}–{end}",
   "gov.pending": "Officials' information is being verified.",
   "gov.pendingNote": "We list an official only after checking the name against an official source. Until then, see the official city website.",
-  "gov.noOffices": "No verified offices yet."
+  "gov.noOffices": "No verified offices yet.",
+  "brgy.title": "Barangays",
+  "brgy.description": "All 33 barangays of Valenzuela, by district, with barangay hall addresses and contacts.",
+  "brgy.intro": "Valenzuela has 33 barangays in two districts.",
+  "brgy.jumpTo": "Jump to",
+  "brgy.district": "District {n}",
+  "brgy.hall": "Barangay hall",
+  "brgy.location": "Location",
+  "brgy.openOsm": "Open in OpenStreetMap",
+  "brgy.pageTitle": "Barangay {name}",
+  "brgy.pending": "Barangay information is being verified.",
+  "brgy.pendingNote": "We list a barangay hall's contacts only after checking them against an official source. Until then, see the official city website.",
+  "brgy.districtCount": "District {n} · {count}",
+  "brgy.hallPhone": "Hall phone {phone}",
+  "brgy.noPhone": "No hall phone listed",
+  "brgy.noAddress": "Street address not yet listed",
+  "brgy.locationNote": "Barangay hall location, from OpenStreetMap.",
+  "brgy.hallName": "Barangay {name} hall"
 }
