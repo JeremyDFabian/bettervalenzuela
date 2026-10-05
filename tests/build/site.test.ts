@@ -284,6 +284,18 @@ describe('machine-readable files', () => {
     expect(read(DRAFTS, 'llms.txt')).toContain('New business permit (sample)');
   });
 
+  test('llms.txt links the new sections, and lists barangays only when published', () => {
+    const prod = read(PROD, 'llms.txt');
+    expect(prod).toContain('/government/');
+    expect(prod).toContain('/barangays/');
+    expect(prod).not.toContain('/history/');
+    expect(prod).not.toMatch(/\/barangays\/[a-z0-9-]+\//);
+    const drafts = read(DRAFTS, 'llms.txt');
+    expect(drafts).toContain('/history/');
+    expect(drafts).toContain('## Barangays');
+    expect(drafts).toMatch(/\/barangays\/malinta\//);
+  });
+
   test('robots.txt points to the sitemap', () => {
     expect(read(PROD, 'robots.txt')).toMatch(/Sitemap: https:\/\/.+\/sitemap-index\.xml/);
   });
