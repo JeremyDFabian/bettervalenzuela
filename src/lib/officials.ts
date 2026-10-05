@@ -27,7 +27,8 @@ export function surnameKey(name: string): string {
   const words = name
     .trim()
     .split(/\s+/)
-    .filter((w) => !SUFFIXES.has(w.toLowerCase().replace(/,$/, '')));
+    .map((w) => w.replace(/,+$/, ''))
+    .filter((w) => !SUFFIXES.has(w.toLowerCase()));
   let start = words.length - 1;
   while (start > 0) {
     const prev = (words[start - 1] ?? '').toLowerCase();

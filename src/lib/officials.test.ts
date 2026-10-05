@@ -11,6 +11,7 @@ describe('surnameKey', () => {
     ['Rovin Andrew M. Feliciano', 'feliciano'],
     ['Ana Delos Santos', 'delos santos'],
     ['Pedro San Juan', 'san juan'],
+    ['Juan Cruz, Jr.', 'cruz'],
   ])('%s -> %s', (name, key) => {
     expect(surnameKey(name)).toBe(key);
   });
