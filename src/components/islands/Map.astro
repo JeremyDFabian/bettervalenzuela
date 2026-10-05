@@ -66,4 +66,13 @@ const { lat, lng, label, note } = Astro.props;
       height: 360px;
     }
   }
+
+  /* Leaflet's zoom buttons are 30px; the project minimum tap target is 44px. */
+  .map :global(.leaflet-bar a),
+  .map :global(.leaflet-touch .leaflet-bar a) {
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
+    font-size: 22px;
+  }
 </style>
