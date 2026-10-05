@@ -24,6 +24,7 @@ import {
   LayoutGrid,
   Leaf,
   MapPin,
+  Megaphone,
   Navigation,
   Phone,
   Receipt,
@@ -85,6 +86,7 @@ export const icons = {
   pause: CirclePause,
   globe: Globe,
   landmark: Landmark,
+  megaphone: Megaphone,
 } as const;
 
 export type IconName = keyof typeof icons;

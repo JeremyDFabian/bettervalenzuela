@@ -1,11 +1,17 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
+import HomeHistory from '../components/home/HomeHistory.astro';
+import HomeLeadership from '../components/home/HomeLeadership.astro';
+import HomeContact from '../components/home/HomeContact.astro';
 import { site } from '../site.config';
-// Plan 2 adds blocks below the hero, in this order: statistics, rain outlook and map, history,
-// leadership, contact, quiz (approved layout, lab #c15 state E).
+// Plan 2b adds blocks 4 and 5 (statistics, rain outlook and map) above HomeHistory, and the quiz
+// at the end (approved layout, lab #c15 state E).
 ---
 
 <BaseLayout title={site.portalName} showHeaderSearch={false} searchable={false}>
   <Hero />
+  <HomeHistory />
+  <HomeLeadership />
+  <HomeContact />
 </BaseLayout>

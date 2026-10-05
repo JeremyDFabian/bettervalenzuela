@@ -1,0 +1,105 @@
+---
+import { t } from '../../i18n/t';
+import { getPublished } from '../../lib/content';
+import { featuredEvents } from '../../lib/history';
+
+/** Approved home history teaser (lab ch20): up to three featured events. Hidden until history is published. */
+const entry = (await getPublished('history'))[0];
+const events = entry ? featuredEvents(entry.data.timeline) : [];
+---
+
+{events.length > 0 && (
+  <section class="block" data-home-block="history" aria-labelledby="home-history-h">
+    <div class="inner">
+      <div class="head">
+        <h2 id="home-history-h">{t('home.history.title')}</h2>
+        <a class="more" href="/history/">
+          {t('home.history.more')} ›
+        </a>
+      </div>
+      <ul class="events">
+        {events.map((event) => (
+          <li>
+            <time datetime={String(event.year)}>{event.year}</time>
+            <span class="title">{event.title}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+)}
+
+<style>
+  .block {
+    padding: 48px 22px;
+  }
+  .inner {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+  .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  h2 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .more {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--tap-min);
+    font-size: 0.9375rem;
+    color: var(--color-link);
+    white-space: nowrap;
+  }
+  .events {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  li {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 18px;
+    border-radius: 14px;
+    background: var(--color-surface);
+  }
+  time {
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--color-primary);
+  }
+  .title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+  @media (max-width: 47.99rem) {
+    .block {
+      padding: 36px 16px;
+    }
+  }
+  @media (max-width: 39.99rem) {
+    .head {
+      flex-direction: column;
+      gap: 0;
+    }
+    h2 {
+      font-size: 1.5rem;
+    }
+    .events {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

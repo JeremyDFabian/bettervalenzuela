@@ -223,6 +223,45 @@ describe('home page', () => {
   test('preview builds show popular services as cards in the hero', () => {
     expect(hero(DRAFTS)).toContain('href="/services/business/sample-business-permit/"');
   });
+
+  const block = (dir: string, name: string): string | null => {
+    const html = read(dir, 'index.html');
+    const start = html.indexOf(`data-home-block="${name}"`);
+    return start === -1 ? null : html.slice(start, html.indexOf('</section>', start));
+  };
+
+  test('production hides leadership and history while they need review, but shows contact', () => {
+    expect(block(PROD, 'leadership')).toBeNull();
+    expect(block(PROD, 'history')).toBeNull();
+    const contact = block(PROD, 'contact');
+    expect(contact).toContain('href="https://www.valenzuela.gov.ph/"');
+    expect(contact).toMatch(/href="https:\/\/(www\.)?facebook\.com\//);
+    expect(contact).toContain('href="tel:');
+    expect(contact).not.toMatch(/<iframe/);
+  });
+
+  test('drafts show the mayor and vice mayor linking to /government/, and three featured events linking to /history/', () => {
+    const leaders = block(DRAFTS, 'leadership') ?? '';
+    expect(leaders).toContain('City Mayor');
+    expect(leaders).toContain('Vice Mayor');
+    expect(leaders).toContain('href="/government/"');
+    const history = block(DRAFTS, 'history') ?? '';
+    expect(history.match(/<time/g)).toHaveLength(3);
+    expect(history).toContain('href="/history/"');
+  });
+
+  test('blocks follow the hero in the approved order: history, leadership, contact', () => {
+    const html = read(DRAFTS, 'index.html');
+    const at = (n: string) => html.indexOf(`data-home-block="${n}"`);
+    expect(html.indexOf('data-home-hero')).toBeLessThan(at('history'));
+    expect(at('history')).toBeLessThan(at('leadership'));
+    expect(at('leadership')).toBeLessThan(at('contact'));
+  });
+
+  test('the official card color hook is set on the home page only, not on /government/', () => {
+    expect(read(DRAFTS, 'index.html')).toContain('--official-card-bg:');
+    expect(read(DRAFTS, 'government/index.html')).not.toContain('--official-card-bg:');
+  });
 });
 
 describe('search index', () => {

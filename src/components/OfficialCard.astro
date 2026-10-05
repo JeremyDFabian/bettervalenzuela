@@ -61,7 +61,7 @@ const phones = contact?.phones ?? [];
     gap: 12px;
     padding: 14px;
     border-radius: 14px;
-    background: var(--color-surface);
+    background: var(--official-card-bg, var(--color-surface));
   }
   .official.large {
     gap: 20px;
@@ -76,7 +76,7 @@ const phones = contact?.phones ?? [];
     height: 90px;
     overflow: hidden;
     border-radius: 12px;
-    background: var(--color-bg);
+    background: var(--official-frame-bg, var(--color-bg));
   }
   .large .frame {
     width: 104px;
