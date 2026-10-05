@@ -442,6 +442,14 @@ describe('map island', () => {
   });
 });
 
+describe('barangay meta descriptions', () => {
+  test('the page description names the barangay and district; the index claims no addresses', () => {
+    const html = read(DRAFTS, 'barangays/malinta/index.html');
+    expect(html).toMatch(/<meta name="description" content="[^"]*Barangay Malinta, District 1/);
+    expect(read(DRAFTS, 'barangays/index.html')).not.toContain('addresses');
+  });
+});
+
 describe('history', () => {
   test('production: no page and no menu link while history needs review', () => {
     expect(existsSync(join(PROD, 'history/index.html'))).toBe(false);

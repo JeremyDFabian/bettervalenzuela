@@ -37,7 +37,7 @@ const needsReview = status === 'needs-review';
 
 <BaseLayout
   {title}
-  description={t('brgy.description')}
+  description={t('brgy.pageDescription', { name, n: district })}
   section="barangays"
   noindex={needsReview}
   jsonLd={placeJsonLd({ name: title, address: hallAddress, url: pageUrl, coordinates })}
